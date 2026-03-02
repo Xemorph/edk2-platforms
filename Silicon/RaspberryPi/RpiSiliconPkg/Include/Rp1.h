@@ -108,6 +108,7 @@
 #define RP1_EXAC_BASE                               0x00400000
 
 #define RP1_USBHOST_SIZE                            0x00100000
+#define RP1_I2C_SIZE                                0x00004000
 
 //
 // Local MSI-X vectors
