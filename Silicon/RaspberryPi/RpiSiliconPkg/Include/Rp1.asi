@@ -58,3 +58,19 @@ Device (XHC1) {
     Return (RBUF)
   }
 }
+
+Device (I2C1) {
+  Name (_HID, "BCM2835")
+  Name (_UID, 0x1)
+  Name (_CID, 0x1)
+
+  Method (_CRS, 0, Serialized) {
+    Name (RBUF, ResourceTemplate () {
+      RP1_QWORDMEMORY_BUF (00)
+      RP1_INTERRUPT_BUF (01)
+    })
+    RP1_QWORDMEMORY_SET (00, RP1_I2C1_BASE, RP1_I2C_SIZE)
+    RP1_INTERRUPT_SET (01)
+    Return (RBUF)
+  }
+}
