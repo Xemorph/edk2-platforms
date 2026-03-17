@@ -52,7 +52,6 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor|L"Durian Platform"
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString|L"V1.0"
 
-  gArmTokenSpaceGuid.PcdVFPEnabled|1
   gArmTokenSpaceGuid.PcdArmPrimaryCoreMask|0x101
   gArmTokenSpaceGuid.PcdArmPrimaryCore|0x0
   gArmPlatformTokenSpaceGuid.PcdCoreCount|4
@@ -148,9 +147,11 @@
       OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf
   }
 
-  ArmPlatformPkg/PrePi/PeiMPCore.inf {
+  ArmPlatformPkg/PeilessSec/PeilessSec.inf {
     <LibraryClasses>
+      NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
       ArmLib|ArmPkg/Library/ArmLib/ArmBaseLib.inf
+      PeilessSecMeasureLib|SecurityPkg/Library/PeilessSecMeasureLib/PeilessSecMeasureLibNull.inf
   }
 
   #
@@ -172,14 +173,14 @@
       NULL|MdeModulePkg/Library/VarCheckUefiLib/VarCheckUefiLib.inf
   }
   MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
-  EmbeddedPkg/ResetRuntimeDxe/ResetRuntimeDxe.inf
+  MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
   EmbeddedPkg/RealTimeClockRuntimeDxe/RealTimeClockRuntimeDxe.inf
 
   #
   # Common Arm Timer and Gic Components
   #
   ArmPkg/Drivers/CpuDxe/CpuDxe.inf
-  ArmPkg/Drivers/ArmGic/ArmGicDxe.inf
+  ArmPkg/Drivers/ArmGicDxe/ArmGicV3Dxe.inf
   EmbeddedPkg/MetronomeDxe/MetronomeDxe.inf
   ArmPkg/Drivers/TimerDxe/TimerDxe.inf
 

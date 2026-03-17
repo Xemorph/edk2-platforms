@@ -33,6 +33,11 @@
   DEFINE TPM2_CONFIG_ENABLE      = FALSE
 
   #
+  # Shell can be useful for debugging but should not be enabled for production
+  #
+  DEFINE BUILD_SHELL             = TRUE
+
+  #
   # Network definition
   #
   DEFINE NETWORK_IP6_ENABLE              = FALSE
@@ -41,6 +46,7 @@
   DEFINE NETWORK_TLS_ENABLE              = FALSE
   DEFINE NETWORK_ALLOW_HTTP_CONNECTIONS  = TRUE
   DEFINE NETWORK_ISCSI_ENABLE            = FALSE
+  DEFINE NETWORK_PXE_BOOT_ENABLE         = TRUE
 
 !include NetworkPkg/NetworkDefines.dsc.inc
 ############################################################################
@@ -100,9 +106,6 @@
   TlsLib|CryptoPkg/Library/TlsLib/TlsLib.inf
 !endif
 
-  # For stack protector support
-  NULL                             | MdePkg/Library/BaseStackCheckLib/BaseStackCheckLib.inf
-
   BaseLib                          | MdePkg/Library/BaseLib/BaseLib.inf
   SafeIntLib                       | MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
   TimeBaseLib                      | EmbeddedPkg/Library/TimeBaseLib/TimeBaseLib.inf
@@ -128,7 +131,6 @@
   IoLib                            | MdePkg/Library/BaseIoLibIntrinsic/BaseIoLibIntrinsic.inf
   PlatformHookLib                  | Platform/Loongson/LoongArchQemuPkg/Library/Fdt16550SerialPortHookLib/Fdt16550SerialPortHookLib.inf
   SerialPortLib                    | MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
-  EfiResetSystemLib                | Platform/Loongson/LoongArchQemuPkg/Library/ResetSystemAcpiLib/BaseResetSystemAcpiGedLib.inf
   ResetSystemLib                   | Platform/Loongson/LoongArchQemuPkg/Library/ResetSystemAcpiLib/BaseResetSystemAcpiGedLib.inf
 
   UefiLib                          | MdePkg/Library/UefiLib/UefiLib.inf
@@ -149,13 +151,27 @@
   VariablePolicyLib                | MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLib.inf
   VariablePolicyHelperLib          | MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
   SortLib                          | MdeModulePkg/Library/UefiSortLib/UefiSortLib.inf
-  FdtLib                           | EmbeddedPkg/Library/FdtLib/FdtLib.inf
+  FdtLib                           | MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
   PciSegmentLib                    | MdePkg/Library/BasePciSegmentLibPci/BasePciSegmentLibPci.inf
   PciHostBridgeLib                 | OvmfPkg/Fdt/FdtPciHostBridgeLib/FdtPciHostBridgeLib.inf
   PciHostBridgeUtilityLib          | OvmfPkg/Library/PciHostBridgeUtilityLib/PciHostBridgeUtilityLib.inf
   MmuLib                           | Platform/Loongson/LoongArchQemuPkg/Library/MmuLib/MmuBaseLib.inf
   FileExplorerLib                  | MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
   ImagePropertiesRecordLib         | MdeModulePkg/Library/ImagePropertiesRecordLib/ImagePropertiesRecordLib.inf
+
+  #
+  # CryptoPkg libraries needed by multiple firmware features
+  #
+  IntrinsicLib                     | CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
+!if $(NETWORK_TLS_ENABLE) == TRUE
+  OpensslLib                       | CryptoPkg/Library/OpensslLib/OpensslLib.inf
+!else
+  OpensslLib                       | CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
+!endif
+  BaseCryptLib                     | CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
+  RngLib                           | MdeModulePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
+
+!include OvmfPkg/Include/Dsc/ShellLibs.dsc.inc
 
 !if $(HTTP_BOOT_ENABLE) == TRUE
   HttpLib                          | MdeModulePkg/Library/DxeHttpLib/DxeHttpLib.inf
@@ -180,11 +196,11 @@
   #
   VirtioLib                        | OvmfPkg/Library/VirtioLib/VirtioLib.inf
   FrameBufferBltLib                | MdeModulePkg/Library/FrameBufferBltLib/FrameBufferBltLib.inf
-  QemuFwCfgLib                     | OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgLibMmio.inf
+  QemuFwCfgLib                     | OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgMmioPeiLib.inf
   DebugLib                         | MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
   PeiServicesLib                   | MdePkg/Library/PeiServicesLib/PeiServicesLib.inf
   VariableFlashInfoLib             | MdeModulePkg/Library/BaseVariableFlashInfoLib/BaseVariableFlashInfoLib.inf
-  VirtNorFlashPlatformLib          | Platform/Loongson/LoongArchQemuPkg/Library/NorFlashQemuLib/NorFlashQemuLib.inf
+  VirtNorFlashPlatformLib          | OvmfPkg/Library/FdtNorFlashQemuLib/FdtNorFlashQemuLib.inf
 
 [LibraryClasses.common.SEC]
   PcdLib                           | MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -242,7 +258,6 @@
   RealTimeClockLib                 | Platform/Loongson/LoongArchQemuPkg/Library/LsRealTimeClockLib/LsRealTimeClockLib.inf
   VariablePolicyLib                | MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
   QemuFwCfgLib                     | Platform/Loongson/LoongArchQemuPkg/Library/QemuFwCfgLib/QemuFwCfgPeiLib.inf
-  EfiResetSystemLib                | Platform/Loongson/LoongArchQemuPkg/Library/ResetSystemAcpiLib/DxeResetSystemAcpiGedLib.inf
   ResetSystemLib                   | Platform/Loongson/LoongArchQemuPkg/Library/ResetSystemAcpiLib/DxeResetSystemAcpiGedLib.inf
   PciExpressLib                    | MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
 !if $(TARGET) != RELEASE
@@ -257,7 +272,7 @@
   ReportStatusCodeLib              | MdeModulePkg/Library/DxeReportStatusCodeLib/DxeReportStatusCodeLib.inf
   UefiScsiLib                      | MdePkg/Library/UefiScsiLib/UefiScsiLib.inf
   ExtractGuidedSectionLib          | MdePkg/Library/PeiExtractGuidedSectionLib/PeiExtractGuidedSectionLib.inf
-  QemuFwCfgLib                     | OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgLibMmio.inf
+  QemuFwCfgLib                     | OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgMmioDxeLib.inf
   PciPcdProducerLib                | OvmfPkg/Fdt/FdtPciPcdProducerLib/FdtPciPcdProducerLib.inf
 
 [LibraryClasses.common.DXE_DRIVER]
@@ -269,7 +284,7 @@
   CpuExceptionHandlerLib           | UefiCpuPkg/Library/CpuExceptionHandlerLib/DxeCpuExceptionHandlerLib.inf
   ExtractGuidedSectionLib          | MdePkg/Library/DxeExtractGuidedSectionLib/DxeExtractGuidedSectionLib.inf
   QemuFwCfgS3Lib                   | OvmfPkg/Library/QemuFwCfgS3Lib/DxeQemuFwCfgS3LibFwCfg.inf
-  QemuFwCfgLib                     | OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgLibMmio.inf
+  QemuFwCfgLib                     | OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgMmioDxeLib.inf
   PciPcdProducerLib                | OvmfPkg/Fdt/FdtPciPcdProducerLib/FdtPciPcdProducerLib.inf
   PciExpressLib                    | MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
   AcpiPlatformLib                  | OvmfPkg/Library/AcpiPlatformLib/DxeAcpiPlatformLib.inf
@@ -293,7 +308,6 @@
 #  gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseMemory               | TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSupportUefiDecompress        | TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutGopSupport                   | TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdConOutUgaSupport                   | FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdPciBusHotplugDeviceSupport         | FALSE
   gUefiOvmfPkgTokenSpaceGuid.PcdQemuBootOrderPciTranslation            | TRUE
   gUefiOvmfPkgTokenSpaceGuid.PcdQemuBootOrderMmioTranslation           | TRUE
@@ -356,12 +370,6 @@
   gLoongArchQemuPkgTokenSpaceGuid.PcdSecPeiTempRamBase                 | 0x10000
   gLoongArchQemuPkgTokenSpaceGuid.PcdSecPeiTempRamSize                 | 0x10000
   gLoongArchQemuPkgTokenSpaceGuid.PcdDeviceTreeBase                    | 0x100000
-  #
-  # minimal memory for uefi bios should be 512M
-  # 0x00000000 - 0x10000000
-  # 0x90000000 - 0xA0000000
-  #
-  gLoongArchQemuPkgTokenSpaceGuid.PcdUefiRamTop                        | 0x10000000
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiExposedTableVersions           | 0x06
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdBootManagerMenuFile                | { 0x21, 0xaa, 0x2c, 0x46, 0x14, 0x76, 0x03, 0x45, 0x83, 0x6e, 0x8a, 0xb6, 0xf4, 0x66, 0x23, 0x31 }
@@ -369,7 +377,7 @@
   #
   # Network Pcds
   #
-!include NetworkPkg/NetworkPcds.dsc.inc
+!include NetworkPkg/NetworkFixedPcds.dsc.inc
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize         | 0x40000
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize         | 0x40000
@@ -412,11 +420,7 @@
   # PCD and PcdPciDisableBusEnumeration above have not been assigned yet
   gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress                    |0xFFFFFFFFFFFFFFFF
 
-  #
-  # IPv4 and IPv6 PXE Boot support.
-  #
-  gEfiNetworkPkgTokenSpaceGuid.PcdIPv4PXESupport                       | 0x01
-  gEfiNetworkPkgTokenSpaceGuid.PcdIPv6PXESupport                       | 0x01
+!include NetworkPkg/NetworkDynamicPcds.dsc.inc
 
   #
   # SMBIOS entry point version
@@ -486,7 +490,10 @@
   # Variable
   #
   OvmfPkg/VirtNorFlashDxe/VirtNorFlashDxe.inf
-  MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
+  MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf {
+    <LibraryClasses>
+      NULL|EmbeddedPkg/Library/NvVarStoreFormattedLib/NvVarStoreFormattedLib.inf
+  }
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
     <LibraryClasses>
       NULL|MdeModulePkg/Library/VarCheckUefiLib/VarCheckUefiLib.inf
@@ -539,12 +546,15 @@
   #
   # Network Support
   #
-#!include NetworkPkg/NetworkComponents.dsc.inc
+!include NetworkPkg/NetworkComponents.dsc.inc
 
-#  NetworkPkg/UefiPxeBcDxe/UefiPxeBcDxe.inf {
-#    <LibraryClasses>
-#      NULL|OvmfPkg/Library/PxeBcPcdProducerLib/PxeBcPcdProducerLib.inf
-#  }
+!if $(NETWORK_ENABLE) == TRUE
+!if $(NETWORK_PXE_BOOT_ENABLE) == TRUE
+  NetworkPkg/UefiPxeBcDxe/UefiPxeBcDxe.inf {
+    <LibraryClasses>
+      NULL|OvmfPkg/Library/PxeBcPcdProducerLib/PxeBcPcdProducerLib.inf
+  }
+!endif
 
 !if $(NETWORK_TLS_ENABLE) == TRUE
   NetworkPkg/TlsAuthConfigDxe/TlsAuthConfigDxe.inf {
@@ -552,14 +562,21 @@
       NULL|OvmfPkg/Library/TlsAuthConfigLib/TlsAuthConfigLib.inf
   }
 !endif
+!endif
   OvmfPkg/VirtioNetDxe/VirtioNet.inf
 
   #
-  # IDE/SCSI
+  # SCSI
   #
-  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
   MdeModulePkg/Bus/Scsi/ScsiBusDxe/ScsiBusDxe.inf
   MdeModulePkg/Bus/Scsi/ScsiDiskDxe/ScsiDiskDxe.inf
+
+  #
+  # SATA
+  #
+  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
+  MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
+  MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
 
   #
   # NVME Driver
@@ -639,26 +656,6 @@
   }
 
   #
-  #app
+  # UEFI application (Shell Embedded Boot Loader)
   #
-  ShellPkg/Application/Shell/Shell.inf {
-    <LibraryClasses>
-      ShellCommandLib|ShellPkg/Library/UefiShellCommandLib/UefiShellCommandLib.inf
-      NULL|ShellPkg/Library/UefiShellLevel2CommandsLib/UefiShellLevel2CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellLevel1CommandsLib/UefiShellLevel1CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellLevel3CommandsLib/UefiShellLevel3CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellDriver1CommandsLib/UefiShellDriver1CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellInstall1CommandsLib/UefiShellInstall1CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
-      HandleParsingLib|ShellPkg/Library/UefiHandleParsingLib/UefiHandleParsingLib.inf
-      ShellLib|ShellPkg/Library/UefiShellLib/UefiShellLib.inf
-      FileHandleLib|MdePkg/Library/UefiFileHandleLib/UefiFileHandleLib.inf
-      SortLib|MdeModulePkg/Library/UefiSortLib/UefiSortLib.inf
-      PrintLib|MdePkg/Library/BasePrintLib/BasePrintLib.inf
-      BcfgCommandLib|ShellPkg/Library/UefiShellBcfgCommandLib/UefiShellBcfgCommandLib.inf
-<PcdsFixedAtBuild>
-      gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0xFF
-      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
-      gEfiMdePkgTokenSpaceGuid.PcdUefiLibMaxPrintBufferSize|8000
-  }
+!include OvmfPkg/Include/Dsc/ShellComponents.dsc.inc

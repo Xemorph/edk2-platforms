@@ -258,22 +258,7 @@ typedef struct {
   RPI_FW_GPIO_SET_CFG_TAG      TagBody;
   UINT32                       EndTag;
 } RPI_FW_NOTIFY_GPIO_SET_CFG_CMD;
-
-typedef struct {
-  UINT32                    Register;
-  UINT32                    Value;
-} RPI_FW_RTC_TAG;
-
-typedef struct {
-  RPI_FW_BUFFER_HEAD        BufferHead;
-  RPI_FW_TAG_HEAD           TagHead;
-  RPI_FW_RTC_TAG            TagBody;
-  UINT32                    EndTag;
-} RPI_FW_RTC_CMD;
-
 #pragma pack()
-
-STATIC UINTN mMboxBaseAddress;
 
 STATIC VOID  *mDmaBuffer;
 STATIC UINTN mDmaBufferSize;
@@ -721,6 +706,211 @@ RpiFirmwareGetFirmwareRevision (
   ReleaseSpinLock (&mMailboxLock);
 
   return EFI_SUCCESS;
+}
+
+STATIC
+CHAR8*
+EFIAPI
+RpiFirmwareGetModelName (
+  IN INTN ModelId
+  )
+{
+  UINT32  Revision;
+
+  // If a negative ModelId is passed, detect it.
+  if ((ModelId < 0) && (RpiFirmwareGetModelRevision (&Revision) == EFI_SUCCESS)) {
+    ModelId = (Revision >> 4) & 0xFF;
+  }
+
+  switch (ModelId) {
+  // www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+  case 0x00:
+    return "Raspberry Pi Model A";
+  case 0x01:
+    return "Raspberry Pi Model B";
+  case 0x02:
+    return "Raspberry Pi Model A+";
+  case 0x03:
+    return "Raspberry Pi Model B+";
+  case 0x04:
+    return "Raspberry Pi 2 Model B";
+  case 0x06:
+    return "Raspberry Pi Compute Module 1";
+  case 0x08:
+    return "Raspberry Pi 3 Model B";
+  case 0x09:
+    return "Raspberry Pi Zero";
+  case 0x0A:
+    return "Raspberry Pi Compute Module 3";
+  case 0x0C:
+    return "Raspberry Pi Zero W";
+  case 0x0D:
+    return "Raspberry Pi 3 Model B+";
+  case 0x0E:
+    return "Raspberry Pi 3 Model A+";
+  case 0x10:
+    return "Raspberry Pi Compute Module 3+";
+  case 0x11:
+    return "Raspberry Pi 4 Model B";
+  case 0x12:
+    return "Raspberry Pi Zero 2 W";
+  case 0x13:
+    return "Raspberry Pi 400";
+  case 0x14:
+    return "Raspberry Pi Compute Module 4";
+  default:
+    return "Unknown Raspberry Pi Model";
+  }
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+RPiFirmwareGetModelInstalledMB (
+  OUT   UINT32 *InstalledMB
+  )
+{
+  EFI_STATUS Status;
+  UINT32     Revision;
+
+  Status = RpiFirmwareGetModelRevision(&Revision);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Could not get the board revision: Status == %r\n",
+      __func__, Status));
+    return EFI_DEVICE_ERROR;
+  }
+
+  //
+  // www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+  // Bits [20-22] indicate the amount of memory starting with 256MB (000b)
+  // and doubling in size for each value (001b = 512 MB, 010b = 1GB, etc.)
+  //
+  *InstalledMB = 256 << ((Revision >> 20) & 0x07);
+  return EFI_SUCCESS;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+RPiFirmwareGetModelFamily (
+  OUT   UINT32 *ModelFamily
+  )
+{
+  EFI_STATUS                  Status;
+  UINT32                      Revision;
+  UINT32                      ModelId;
+
+  Status = RpiFirmwareGetModelRevision(&Revision);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR,
+      "%a: Could not get the board revision: Status == %r\n",
+      __func__, Status));
+    return EFI_DEVICE_ERROR;
+  } else {
+    ModelId = (Revision >> 4) & 0xFF;
+  }
+
+  switch (ModelId) {
+  // www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+  case 0x00:          // Raspberry Pi Model A
+  case 0x01:          // Raspberry Pi Model B
+  case 0x02:          // Raspberry Pi Model A+
+  case 0x03:          // Raspberry Pi Model B+
+  case 0x06:          // Raspberry Pi Compute Module 1
+  case 0x09:          // Raspberry Pi Zero
+  case 0x0C:          // Raspberry Pi Zero W
+      *ModelFamily = 1;
+      break;
+  case 0x04:          // Raspberry Pi 2 Model B
+      *ModelFamily = 2;
+      break;
+  case 0x08:          // Raspberry Pi 3 Model B
+  case 0x0A:          // Raspberry Pi Compute Module 3
+  case 0x0D:          // Raspberry Pi 3 Model B+
+  case 0x0E:          // Raspberry Pi 3 Model A+
+  case 0x10:          // Raspberry Pi Compute Module 3+
+  case 0x12:          // Raspberry Pi Zero 2 W
+      *ModelFamily = 3;
+      break;
+  case 0x11:          // Raspberry Pi 4 Model B
+  case 0x13:          // Raspberry Pi 400
+  case 0x14:          // Raspberry Pi Computer Module 4
+      *ModelFamily = 4;
+      break;
+  default:
+      *ModelFamily = 0;
+      break;
+  }
+
+  if (*ModelFamily == 0) {
+    DEBUG ((DEBUG_ERROR,
+      "%a: Unknown Raspberry Pi model family : ModelId == 0x%x\n",
+      __func__, ModelId));
+    return EFI_UNSUPPORTED;
+    }
+
+  return EFI_SUCCESS;
+}
+
+STATIC
+CHAR8*
+EFIAPI
+RpiFirmwareGetManufacturerName (
+  IN INTN ManufacturerId
+  )
+{
+  UINT32  Revision;
+
+  // If a negative ModelId is passed, detect it.
+  if ((ManufacturerId < 0) && (RpiFirmwareGetModelRevision (&Revision) == EFI_SUCCESS)) {
+    ManufacturerId = (Revision >> 16) & 0x0F;
+  }
+
+  switch (ManufacturerId) {
+  // www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+  case 0x00:
+    return "Sony UK";
+  case 0x01:
+    return "Egoman";
+  case 0x02:
+  case 0x04:
+    return "Embest";
+  case 0x03:
+    return "Sony Japan";
+  case 0x05:
+    return "Stadium";
+  default:
+    return "Unknown Manufacturer";
+  }
+}
+
+STATIC
+CHAR8*
+EFIAPI
+RpiFirmwareGetCpuName (
+  IN INTN CpuId
+  )
+{
+  UINT32  Revision;
+
+  // If a negative CpuId is passed, detect it.
+  if ((CpuId < 0) && (RpiFirmwareGetModelRevision (&Revision) == EFI_SUCCESS)) {
+    CpuId = (Revision >> 12) & 0x0F;
+  }
+
+  switch (CpuId) {
+  // www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+  case 0x00:
+    return "BCM2835 (ARM11)";
+  case 0x01:
+    return "BCM2836 (ARM Cortex-A7)";
+  case 0x02:
+    return "BCM2837 (ARM Cortex-A53)";
+  case 0x03:
+    return "BCM2711 (ARM Cortex-A72)";
+  default:
+    return "Unknown CPU Model";
+  }
 }
 
 STATIC
@@ -1517,42 +1707,6 @@ RpiFirmwareDxeInitialize (
     DEBUG ((DEBUG_ERROR,
       "%a: failed to install RPI firmware protocol (Status == %r)\n",
       __func__, Status));
-    goto UnmapBuffer;
-  }
-
-  AlignedMboxAddress = mMboxBaseAddress & ~(EFI_PAGE_SIZE - 1);
-
-  Status = gDS->AddMemorySpace (
-                  EfiGcdMemoryTypeMemoryMappedIo,
-                  AlignedMboxAddress,
-                  EFI_PAGE_SIZE,
-                  EFI_MEMORY_UC | EFI_MEMORY_RUNTIME);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: AddMemorySpace failed. Status=%r\n",
-            __func__, Status));
-    goto UnmapBuffer;
-  }
-
-  Status = gDS->SetMemorySpaceAttributes (
-                  AlignedMboxAddress,
-                  EFI_PAGE_SIZE,
-                  EFI_MEMORY_UC | EFI_MEMORY_RUNTIME);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: SetMemorySpaceAttributes failed. Status=%r\n",
-            __func__, Status));
-    goto UnmapBuffer;
-  }
-
-  Status = gBS->CreateEventEx (
-                  EVT_NOTIFY_SIGNAL,
-                  TPL_NOTIFY,
-                  RpiFirmwareVirtualAddressChangeNotify,
-                  NULL,
-                  &gEfiEventVirtualAddressChangeGuid,
-                  &VirtualAddressChangeEvent);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a: failed to register for virtual address change. Status=%r\n",
-            __func__, Status));
     goto UnmapBuffer;
   }
 

@@ -659,7 +659,6 @@ PlatformBootManagerBeforeConsole (
     ASSERT_EFI_ERROR (Status);
   }
 
-
   //
   // Signal EndOfDxe PI Event
   //

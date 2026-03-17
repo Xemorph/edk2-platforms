@@ -14,7 +14,7 @@
 
 [PcdsFixedAtBuild.common]
   ######################################
-  # Key Boot Stage and FSP configuration
+  # Key Boot Stage
   ######################################
   #
   # Please select the Boot Stage here.
@@ -25,8 +25,28 @@
   # Stage 5 - boot to OS with security boot enabled
   # Stage 6 - boot with advanced features enabled
   #
-  gMinPlatformPkgTokenSpaceGuid.PcdBootStage|4
+  gMinPlatformPkgTokenSpaceGuid.PcdBootStage|5
 
+  ######################################
+  # Platform Configuration
+  ######################################
+  #
+  # MinPlatform common include for required feature PCD
+  # These PCD must be set before the core include files, CoreCommonLib,
+  # CorePeiLib, and CoreDxeLib.
+  # Optional MinPlatformPkg features should be enabled after this
+  #
+  !include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
+
+  #
+  # Commonly used MinPlatform feature configuration logic that maps functionity to stage
+  #
+  !include BoardModulePkg/Include/Dsc/CommonStageConfig.dsc.inc
+
+[PcdsFixedAtBuild.common]
+  ######################################
+  # FSP configuration
+  ######################################
   #
   # 0: FSP Wrapper is running in Dispatch mode.
   # 1: FSP Wrapper is running in API mode.
@@ -141,22 +161,6 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdInstallAcpiSdtProtocol|TRUE
 
   ######################################
-  # Platform Configuration
-  ######################################
-  #
-  # MinPlatform common include for required feature PCD
-  # These PCD must be set before the core include files, CoreCommonLib,
-  # CorePeiLib, and CoreDxeLib.
-  # Optional MinPlatformPkg features should be enabled after this
-  #
-  !include MinPlatformPkg/Include/Dsc/MinPlatformFeaturesPcd.dsc.inc
-
-  #
-  # Commonly used MinPlatform feature configuration logic that maps functionity to stage
-  #
-  !include BoardModulePkg/Include/Dsc/CommonStageConfig.dsc.inc
-
-  ######################################
   # Board Configuration
   ######################################
   gBoardModuleTokenSpaceGuid.PcdIntelGopEnable|TRUE
@@ -174,6 +178,13 @@
   gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x07
 !endif
 
+  #
+  # INIT is now triggered before BIOS by ucode/hardware. In the OVMF
+  # environment, QEMU lacks a simulation for the INIT process.
+  # To address this, PcdFirstTimeWakeUpAPsBySipi set to FALSE to
+  # broadcast INIT-SIPI-SIPI for the first time.
+  #
+  gUefiCpuPkgTokenSpaceGuid.PcdFirstTimeWakeUpAPsBySipi|FALSE
 
 !if $(TARGET) == DEBUG
   !if gSiPkgTokenSpaceGuid.PcdSerialIoUartEnable == TRUE
@@ -287,6 +298,7 @@
 
 
 [PcdsDynamicDefault]
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSrIovSupport|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutColumn|0x0
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutRow|0x0
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiDefaultOemTableId|0x20202020204C4349
@@ -312,6 +324,14 @@ gIntelFsp2WrapperTokenSpaceGuid.PcdFspsUpdDataAddress|0x00000000
   # @Prompt Configure max supported number of Logical Processorss
   gUefiCpuPkgTokenSpaceGuid.PcdCpuMaxLogicalProcessorNumber|16
   gEfiMdeModulePkgTokenSpaceGuid.PcdResetOnMemoryTypeInformationChange|FALSE
+
+!if gMinPlatformPkgTokenSpaceGuid.PcdTpm2Enable == TRUE
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInitializationPolicy|1
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid|{0x5a, 0xf2, 0x6b, 0x28, 0xc3, 0xc2, 0x8c, 0x40, 0xb3, 0xb4, 0x25, 0xe6, 0x75, 0x8b, 0x73, 0x17}
+!endif
+
+[PcdsDynamicHii.common.DEFAULT]
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpm2AcpiTableRev|L"TCG2_VERSION"|gTcg2ConfigFormSetGuid|0x8|4|NV,BS
 
 [PcdsDynamicHii.X64.DEFAULT]
   gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|L"Timeout"|gEfiGlobalVariableGuid|0x0|5 # Variable: L"Timeout"

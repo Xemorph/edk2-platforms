@@ -12,6 +12,7 @@
 #include <Library/ReportStatusCodeLib.h>
 #include <Library/IpmiPlatformHookLib.h>
 #include <Library/BmcCommonInterfaceLib.h>
+#include <Library/PeiServicesLib.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -208,6 +209,13 @@ UpdateIpmiInstancePtr (
     IpmiInstance = (PEI_IPMI_BMC_INSTANCE_DATA *)((UINT8 *)IpmiInstance - \
                                                   (UINTN)((UINTN)IpmiInstancePtrHob->PreMemIpmiDataHobPtr - (UINTN)IpmiInstancePtrHob));
   }
+  //
+  //Migrate function pointer after module reload
+  //
+  IpmiInstance->IpmiTransportPpi.IpmiSubmitCommand = PeiIpmiSendCommand;
+  IpmiInstance->IpmiTransportPpi.GetBmcStatus      = PeiGetIpmiBmcStatus;
+  IpmiInstance->PeiIpmiBmcDataDesc.Guid  = &gPeiIpmiTransportPpiGuid;
+  IpmiInstance->PeiIpmiBmcDataDesc.Ppi   = &IpmiInstance->IpmiTransportPpi;
 
   IpmiInstancePtrHob->IpmiInstance = (UINTN)IpmiInstance;
   DEBUG ((DEBUG_INFO, "IpmiInstance Signature after Permanent Memory discovered: %x\n", IpmiInstance->Signature));
@@ -462,12 +470,19 @@ SendPreBootSignaltoBmc (
   @retval EFI_SUCCESS   Indicates that Ipmi initialization completed successfully.
 **/
 EFI_STATUS
+EFIAPI
 PeimIpmiInterfaceInit (
   IN       EFI_PEI_FILE_HANDLE  FileHandle,
   IN CONST EFI_PEI_SERVICES     **PeiServices
   )
 {
   EFI_STATUS  Status;
+
+  //
+  //Register this moudule for Shadow.
+  //
+  Status = PeiServicesRegisterForShadow (FileHandle);
+  DEBUG ((DEBUG_INFO, "%a %d register for Shwdow Result %r \n", __FUNCTION__, __LINE__,Status));
 
   //
   // Performing Ipmi KCS physical layer initialization
@@ -478,6 +493,7 @@ PeimIpmiInterfaceInit (
 } // PeimIpmiInterfaceInit()
 
 EFI_STATUS
+EFIAPI
 PeiGetIpmiBmcStatus (
   IN      PEI_IPMI_TRANSPORT_PPI  *This,
   OUT BMC_STATUS                  *BmcStatus,

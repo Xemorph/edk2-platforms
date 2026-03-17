@@ -20,6 +20,7 @@
   ArmPkg/ArmPkg.dec
   ArmPlatformPkg/ArmPlatformPkg.dec
   Platform/ARM/VExpressPkg/ArmVExpressPkg.dec
+  SecurityPkg/SecurityPkg.dec
 
 [LibraryClasses]
   IoLib
@@ -31,9 +32,6 @@
 [Sources.common]
   RTSM.c
   RTSMMem.c
-
-[Sources.ARM]
-  Arm/RTSMHelper.S
 
 [Sources.AARCH64]
   AArch64/RTSMHelper.S
@@ -62,6 +60,9 @@
 
   gArmTokenSpaceGuid.PcdPciMmio64Base
   gArmTokenSpaceGuid.PcdPciMmio64Size
+
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmBaseAddress
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmCrbRegionSize
 
 [Ppis]
   gArmMpCoreInfoPpiGuid

@@ -108,8 +108,12 @@ FvNameGuid         = B73FE497-B92E-416e-8326-45AD0D270092
   INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
   INF EmbeddedPkg/RealTimeClockRuntimeDxe/RealTimeClockRuntimeDxe.inf
 
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == TRUE
+  INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
+!else
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
   INF MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
+!endif
 
   #
   # ACPI Support
@@ -138,7 +142,7 @@ FvNameGuid         = B73FE497-B92E-416e-8326-45AD0D270092
   INF MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   INF MdeModulePkg/Universal/SerialDxe/SerialDxe.inf
 
-  INF ArmPkg/Drivers/ArmGic/ArmGicDxe.inf
+  INF ArmPkg/Drivers/ArmGicDxe/ArmGicV2Dxe.inf
   INF ArmPkg/Drivers/TimerDxe/TimerDxe.inf
   INF ArmPkg/Drivers/GenericWatchdogDxe/GenericWatchdogDxe.inf
 
@@ -235,6 +239,10 @@ FvNameGuid         = B73FE497-B92E-416e-8326-45AD0D270092
   INF MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
   INF MdeModulePkg/Application/UiApp/UiApp.inf
 
+!if $(ENABLE_STMM) == TRUE
+  INF ArmPkg/Drivers/MmCommunicationDxe/MmCommunication.inf
+!endif
+
   #
   # FDT installation
   #
@@ -250,6 +258,10 @@ FvNameGuid         = B73FE497-B92E-416e-8326-45AD0D270092
   # EBC
   #
   INF MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
+!endif
+
+!if $(ENABLE_TPM) == TRUE
+  INF SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf
 !endif
 
 [FV.FVMAIN_COMPACT]
@@ -270,7 +282,7 @@ READ_STATUS        = TRUE
 READ_LOCK_CAP      = TRUE
 READ_LOCK_STATUS   = TRUE
 
-  INF ArmPlatformPkg/PrePi/PeiUniCore.inf
+  INF ArmPlatformPkg/PeilessSec/PeilessSec.inf
 
   FILE FV_IMAGE = 9E21FD93-9C72-4c15-8C4B-E77F1DB2D792 {
     SECTION GUIDED EE4E5898-3914-4259-9D6E-DC7BD79403CF PROCESSING_REQUIRED = TRUE {
@@ -312,21 +324,9 @@ READ_LOCK_STATUS   = TRUE
 # ArmPlatformPkg/PrePi is declared as a SEC module to make GenFv patch the
 # UEFI Firmware to jump to ArmPlatformPkg/PrePi entrypoint
 #
-[Rule.ARM.SEC]
-  FILE SEC = $(NAMED_GUID) RELOCS_STRIPPED {
-    TE  TE    Align = 32                $(INF_OUTPUT)/$(MODULE_NAME).efi
-  }
-
 [Rule.AARCH64.SEC]
   FILE SEC = $(NAMED_GUID) RELOCS_STRIPPED FIXED {
     TE  TE    Align = Auto              $(INF_OUTPUT)/$(MODULE_NAME).efi
-  }
-
-# A shim specific rule is required to ensure the alignment is 4K.
-# Otherwise BaseTools pick up the AArch32 alignment (ie: 32)
-[Rule.ARM.SEC.SHIM]
-  FILE SEC = $(NAMED_GUID) RELOCS_STRIPPED {
-    TE  TE    Align = 4K                $(INF_OUTPUT)/$(MODULE_NAME).efi
   }
 
 [Rule.Common.PEI_CORE]

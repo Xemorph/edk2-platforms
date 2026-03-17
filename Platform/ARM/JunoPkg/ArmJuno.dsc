@@ -20,14 +20,27 @@
 !else
   OUTPUT_DIRECTORY               = Build/ArmJuno
 !endif
-  SUPPORTED_ARCHITECTURES        = AARCH64|ARM
+  SUPPORTED_ARCHITECTURES        = AARCH64
   BUILD_TARGETS                  = DEBUG|RELEASE|NOOPT
   SKUID_IDENTIFIER               = DEFAULT
   FLASH_DEFINITION               = Platform/ARM/JunoPkg/ArmJuno.fdf
 
+  # To allow the use of ueif secure variable feature, set this to TRUE.
+  DEFINE ENABLE_UEFI_SECURE_VARIABLE = FALSE
+
+  # Enable TPM2 service
+  DEFINE ENABLE_TPM              = FALSE
+
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == TRUE || $(ENABLE_TPM) == TRUE
+  DEFINE ENABLE_STMM             = TRUE
+!else
+  DEFINE ENABLE_STMM             = FALSE
+!endif
+
+!include MdePkg/MdeLibs.dsc.inc
+
 # On RTSM, most peripherals are VExpress Motherboard peripherals
 !include Platform/ARM/VExpressPkg/ArmVExpress.dsc.inc
-!include MdePkg/MdeLibs.dsc.inc
 
 !ifdef DYNAMIC_TABLES_FRAMEWORK
 !include DynamicTablesPkg/DynamicTables.dsc.inc
@@ -35,12 +48,23 @@
 !endif
 
 [LibraryClasses.common]
+  ArmFfaLib|MdeModulePkg/Library/ArmFfaLib/ArmFfaDxeLib.inf
   ArmLib|ArmPkg/Library/ArmLib/ArmBaseLib.inf
-  ArmMmuLib|ArmPkg/Library/ArmMmuLib/ArmMmuBaseLib.inf
+  ArmMmuLib|UefiCpuPkg/Library/ArmMmuLib/ArmMmuBaseLib.inf
   ArmPlatformLib|Platform/ARM/JunoPkg/Library/ArmJunoLib/ArmJunoLib.inf
-  ArmSmcLib|ArmPkg/Library/ArmSmcLib/ArmSmcLib.inf
+  ArmSmcLib|MdePkg/Library/ArmSmcLib/ArmSmcLib.inf
+  ArmHvcLib|ArmPkg/Library/ArmHvcLib/ArmHvcLib.inf
 
+  # Trng Supports.
+  ArmMonitorLib|ArmPkg/Library/ArmMonitorLib/ArmMonitorLib.inf
+  ArmTrngLib|ArmPkg/Library/ArmTrngLib/ArmTrngLib.inf
+  # Rng
+  RngLib|MdePkg/Library/DxeRngLib/DxeRngLib.inf
+
+  NorFlashDeviceLib|Platform/ARM/Library/P30NorFlashDeviceLib/P30NorFlashDeviceLib.inf
   NorFlashPlatformLib|Platform/ARM/JunoPkg/Library/NorFlashJunoLib/NorFlashJunoLib.inf
+  # NOR flash identification support
+  NorFlashInfoLib|EmbeddedPkg/Library/NorFlashInfoLib/NorFlashInfoLib.inf
 
   CapsuleLib|MdeModulePkg/Library/DxeCapsuleLibNull/DxeCapsuleLibNull.inf
   CustomizedDisplayLib|MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.inf
@@ -56,10 +80,23 @@
   LcdHwLib|ArmPlatformPkg/Library/HdLcd/HdLcd.inf
 !endif
 
+!if $(ENABLE_STMM) == TRUE
+  MmUnblockMemoryLib|MdePkg/Library/MmUnblockMemoryLib/MmUnblockMemoryLibNull.inf
+!endif
+
+!if $(ENABLE_TPM) == TRUE
+  HashLib|SecurityPkg/Library/HashLibBaseCryptoRouter/HashLibBaseCryptoRouterDxe.inf
+  Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibRouter/Tpm2DeviceLibRouterDxe.inf
+  TpmCommLib|SecurityPkg/Library/TpmCommLib/TpmCommLib.inf
+  Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+  TpmMeasurementLib|SecurityPkg/Library/DxeTpmMeasurementLib/DxeTpmMeasurementLib.inf
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
+  Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
+!endif
+
 [LibraryClasses.common.SEC]
   PrePiLib|EmbeddedPkg/Library/PrePiLib/PrePiLib.inf
   ExtractGuidedSectionLib|EmbeddedPkg/Library/PrePiExtractGuidedSectionLib/PrePiExtractGuidedSectionLib.inf
-  LzmaDecompressLib|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
   MemoryAllocationLib|EmbeddedPkg/Library/PrePiMemoryAllocationLib/PrePiMemoryAllocationLib.inf
   HobLib|EmbeddedPkg/Library/PrePiHobLib/PrePiHobLib.inf
   PrePiHobListPointerLib|ArmPlatformPkg/Library/PrePiHobListPointerLib/PrePiHobListPointerLib.inf
@@ -87,6 +124,18 @@
   *_*_*_PLATFORM_FLAGS = -DENABLE_CPC
 !endif
 
+!if $(ENABLE_STMM) == TRUE
+  GCC:*_*_*_CC_FLAGS = -DENABLE_STMM
+!endif
+
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == TRUE
+  GCC:*_*_*_CC_FLAGS = -DENABLE_UEFI_SECURE_VARIABLE
+!endif
+
+!if $(ENABLE_TPM) == TRUE
+  GCC:*_*_*_CC_FLAGS = -DENABLE_TPM
+!endif
+
 ################################################################################
 #
 # Pcd Section - list of all EDK II PCD Entries defined by this Platform
@@ -100,36 +149,63 @@
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdTurnOffUsbLegacySupport|TRUE
 
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == TRUE
+  #
+  # Disable Runtime Variable Cache
+  # so that the variable saved in secure arbitrary exported in normal world.
+  #
+  gEfiMdeModulePkgTokenSpaceGuid.PcdEnableVariableRuntimeCache|FALSE
+!endif
+
 [PcdsFixedAtBuild.common]
   #
   # NV Storage PCDs. Use base of 0x08000000 for NOR0
   #
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase|0x0BFC0000
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize|0x00010000
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase|0x0BFD0000
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize|0x00010000
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase|0x0BFE0000
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize|0x00010000
-
   gEfiMdeModulePkgTokenSpaceGuid.PcdMaxVariableSize|0x2000
+!endif
 
-  # System Memory (2GB - 16MB of Trusted DRAM at the top of the 32bit address space)
+
+  # System Memory (2GB - 17MB [ which is composed of 16MB of
+  # Trusted DRAM at the top of the 32bit address space followed by 1MB of
+  # shared memory between normal world and secure world]).
+  #
+  # +-------------------------------------+ 0x80000000 (PcdSystemMemoryBase)
+  # |                                     |
+  # |            System Memory            |
+  # |       (2GB - (17MB + 0x7e9000))     |
+  # |                                     |
+  # +-------------------------------------+ 0xfe717000 (PcdSystemMemoryBase + PcdSystemMemorySize when HEADLESS_PLATFORM)
+  # |   FrameBuffer Memory (0x007e9000)   |
+  # |       (!HEADLESS_PLATFORM)          |
+  # +-------------------------------------+ 0xfef00000 (PcdSystemMemoryBase + PcdSystemMemorySize when !HEADLESS_PLATFORM)
+  # |   Reserved for normal world (1MB)   |
+  # |        (NS bufferand etc)           |
+  # +-------------------------------------+ 0xff000000
+  # |   Reserved for secure world (16MB)  |
+  # |        (StandaloneMm and etc)       |
+  # +-------------------------------------+ 0xffffffff
+  #
   gArmTokenSpaceGuid.PcdSystemMemoryBase|0x80000000
 
 !ifdef HEADLESS_PLATFORM
-  gArmTokenSpaceGuid.PcdSystemMemorySize|0x7F000000
+  gArmTokenSpaceGuid.PcdSystemMemorySize|0x7EF00000
 !else
   # Default framebuffer size is 0x7E9000, reduce system memory size for framebuffer.
-  gArmTokenSpaceGuid.PcdSystemMemorySize|0x7E817000
-  gArmPlatformTokenSpaceGuid.PcdArmLcdDdrFrameBufferBase|0xFE817000
+  gArmTokenSpaceGuid.PcdSystemMemorySize|0x7E717000
+  gArmPlatformTokenSpaceGuid.PcdArmLcdDdrFrameBufferBase|0xFE717000
   gArmPlatformTokenSpaceGuid.PcdArmHdLcdSwapBlueRedSelect|TRUE
 !endif
 
   # Juno Dual-Cluster profile
   gArmPlatformTokenSpaceGuid.PcdCoreCount|6
   gArmPlatformTokenSpaceGuid.PcdClusterCount|2
-
-  gArmTokenSpaceGuid.PcdVFPEnabled|1
 
   #
   # ARM PrimeCell
@@ -188,12 +264,6 @@
   # List of Device Paths that support BootMonFs
   gArmBootMonFsTokenSpaceGuid.PcdBootMonFsSupportedDevicePaths|L"VenHw(DE6AE758-D662-4E17-A97C-4C5964DA4C41,00)"
 
-  #
-  # ARM Architectural Timer Frequency
-  #
-  # Set to 0 so ArmArchTimerLib will read its value from CNTFRQ_EL0
-  gArmTokenSpaceGuid.PcdArmArchTimerFreqInHz|0
-
   gEfiMdeModulePkgTokenSpaceGuid.PcdResetOnMemoryTypeInformationChange|FALSE
 
   #
@@ -214,6 +284,40 @@
   gEdkiiDynamicTablesPkgTokenSpaceGuid.PcdDevelopmentPlatformRelaxations|0x1
 !endif
 
+  #
+  # Juno Support Trng. Override PcdEnforceSecureRngAlgorithms.
+  #
+  gEfiMdePkgTokenSpaceGuid.PcdEnforceSecureRngAlgorithms|TRUE
+
+  #
+  # Set the base address and size of the buffer used
+  # by MM_COMMUNICATE for communication between the
+  # Normal world edk2 and the StandaloneMm image at S-EL0.
+  # This buffer is allocated in TF-A.
+  #
+!if $(ENABLE_STMM) == TRUE
+  ## MM Communicate
+  gArmTokenSpaceGuid.PcdMmBufferBase|0xFEF00000
+  gArmTokenSpaceGuid.PcdMmBufferSize|0x10000
+!endif
+
+!if $(ENABLE_TPM) == TRUE
+  #
+  # Normal pseudo crbs which locality from 0 to 3 are allocated
+  # at the start of System Memory.
+  #
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmBaseAddress|0xfef10000
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmMaxAddress|0xfef13FFF
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmCrbRegionSize|0x4000
+
+!ifdef DYNAMIC_TABLES_FRAMEWORK
+  gEdkiiDynamicTablesPkgTokenSpaceGuid.PcdGenTpm2DeviceTable|TRUE
+!endif
+!endif
+
+[PcdsFixedAtBuild.ARM]
+  gArmTokenSpaceGuid.PcdVFPEnabled|1
+
 [PcdsPatchableInModule]
   # Console Resolution (Full HD)
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1920
@@ -232,6 +336,14 @@
   # PCI support.
   gEfiMdeModulePkgTokenSpaceGuid.PcdPciDisableBusEnumeration|TRUE
 
+!if $(ENABLE_TPM) == TRUE
+  #
+  # TPM2 Device Instance for Tpm2DeviceRouterLib
+  #
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid|{GUID("17b862a4-1806-4faf-86b3-089a58353861")}|VOID*|0x10
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x00000002
+!endif
+
 ################################################################################
 #
 # Components Section - list of all EDK II Modules needed by this Platform
@@ -241,7 +353,15 @@
   #
   # PEI Phase modules
   #
-  ArmPlatformPkg/PrePi/PeiUniCore.inf
+  ArmPlatformPkg/PeilessSec/PeilessSec.inf {
+    <LibraryClasses>
+      NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
+!if $(ENABLE_TPM) == TRUE
+      Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibFfa/Tpm2DeviceSecLibFfa.inf
+      HashLib|SecurityPkg/Library/HashLibTpm2/HashLibTpm2PeilessSecLib.inf
+      PeilessSecMeasureLib|SecurityPkg/Library/PeilessSecMeasureLib/PeilessSecMeasureLib.inf
+!endif
+  }
 
   #
   # DXE
@@ -257,7 +377,18 @@
   #
   ArmPkg/Drivers/CpuDxe/CpuDxe.inf
   MdeModulePkg/Core/RuntimeDxe/RuntimeDxe.inf
+
+!if $(ENABLE_TPM) == TRUE
+  MdeModulePkg/Universal/SecurityStubDxe/SecurityStubDxe.inf {
+    <LibraryClasses>
+      RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
+      NULL|SecurityPkg/Library/DxeImageAuthenticationStatusLib/DxeImageAuthenticationStatusLib.inf
+      NULL|SecurityPkg/Library/DxeTpm2MeasureBootLib/DxeTpm2MeasureBootLib.inf
+  }
+!else
   MdeModulePkg/Universal/SecurityStubDxe/SecurityStubDxe.inf
+!endif
+
   MdeModulePkg/Universal/CapsuleRuntimeDxe/CapsuleRuntimeDxe.inf
   MdeModulePkg/Universal/Metronome/Metronome.inf
   MdeModulePkg/Universal/MonotonicCounterRuntimeDxe/MonotonicCounterRuntimeDxe.inf
@@ -270,6 +401,9 @@
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   MdeModulePkg/Universal/SerialDxe/SerialDxe.inf
 
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == TRUE
+  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
+!else
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
     <LibraryClasses>
       NULL|EmbeddedPkg/Library/NvVarStoreFormattedLib/NvVarStoreFormattedLib.inf
@@ -277,6 +411,7 @@
       BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
   }
   MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
+!endif
 
   #
   # ACPI Support
@@ -287,7 +422,7 @@
 !endif
   MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
 
-  ArmPkg/Drivers/ArmGic/ArmGicDxe.inf
+  ArmPkg/Drivers/ArmGicDxe/ArmGicV2Dxe.inf
   Platform/ARM/Drivers/NorFlashDxe/NorFlashDxe.inf
   ArmPkg/Drivers/TimerDxe/TimerDxe.inf
   ArmPkg/Drivers/GenericWatchdogDxe/GenericWatchdogDxe.inf
@@ -392,10 +527,47 @@
   Platform/ARM/Drivers/FdtPlatformDxe/FdtPlatformDxe.inf {
     <LibraryClasses>
       BdsLib|Platform/ARM/Library/BdsLib/BdsLib.inf
+      FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
   }
 
   # SCMI Driver
   ArmPkg/Drivers/ArmScmiDxe/ArmScmiDxe.inf
+
+  #
+  # Rng
+  #
+  SecurityPkg/RandomNumberGenerator/RngDxe/RngDxe.inf {
+    <LibraryClasses>
+    !if $(ENABLE_UNSAFE_RNGLIB) == TRUE
+      RngLib|MdeModulePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
+    !else
+      RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
+    !endif
+  }
+
+  #
+  # MmCommunicationDxe Driver
+  #
+!if $(ENABLE_STMM) == TRUE
+  ArmPkg/Drivers/MmCommunicationDxe/MmCommunication.inf {
+    <LibraryClasses>
+      NULL|StandaloneMmPkg/Library/VariableMmDependency/VariableMmDependency.inf
+  }
+!endif
+
+  #
+  # Trust Platform Module
+  #
+!if $(ENABLE_TPM) == TRUE
+  SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf {
+    <LibraryClasses>
+      Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibRouter/Tpm2DeviceLibRouterDxe.inf
+      NULL|SecurityPkg/Library/Tpm2DeviceLibFfa/Tpm2InstanceLibFfa.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha256/HashInstanceLibSha256.inf
+      BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
+  }
+  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf
+!endif
 
 [Components.AARCH64]
   #

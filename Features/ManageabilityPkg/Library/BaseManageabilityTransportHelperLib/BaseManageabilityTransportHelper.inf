@@ -16,7 +16,7 @@
   LIBRARY_CLASS                  = ManageabilityTransportHelperLib
 
 #
-#  VALID_ARCHITECTURES           = IA32 X64 ARM AARCH64
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
 #
 
 [Sources]
@@ -36,6 +36,7 @@
   gManageabilityTransportKcsGuid
   gManageabilityTransportSmbusI2cGuid
   gManageabilityTransportPciVdmGuid
+  gManageabilityTransportSerialGuid
   gManageabilityTransportMctpGuid
   gManageabilityProtocolIpmiGuid
   gManageabilityProtocolMctpGuid

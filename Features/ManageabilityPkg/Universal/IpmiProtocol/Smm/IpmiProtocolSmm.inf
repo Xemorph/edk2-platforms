@@ -2,13 +2,14 @@
 # IPMI Protocol SMM Driver.
 #
 # Copyright (C) 2023 Advanced Micro Devices, Inc. All rights reserved.<BR>
+# Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
 
 #
 # The following information is for reference only and not required by the build tools.
 #
-#  VALID_ARCHITECTURES           = IA32 X64 ARM AARCH64
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
 #
 [Defines]
   INF_VERSION                         = 0x0001001d
@@ -47,6 +48,11 @@
 
 [FixedPcd]
   gEfiMdePkgTokenSpaceGuid.PcdIpmiKcsIoBaseAddress   # Used as default KCS I/O base adddress
+  gEfiMdePkgTokenSpaceGuid.PcdIpmiSsifSmbusSlaveAddr
+  gEfiMdePkgTokenSpaceGuid.PcdIpmiSerialRequesterAddress
+  gEfiMdePkgTokenSpaceGuid.PcdIpmiSerialResponderAddress
+  gEfiMdePkgTokenSpaceGuid.PcdIpmiSerialRequesterLun
+  gEfiMdePkgTokenSpaceGuid.PcdIpmiSerialResponderLun
 
 [Depex]
   TRUE

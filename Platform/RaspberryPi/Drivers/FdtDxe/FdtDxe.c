@@ -10,15 +10,12 @@
 
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
-#include <Library/BoardInfoLib.h>
-#include <Library/BoardRevisionHelperLib.h>
 #include <Library/DebugLib.h>
 #include <Library/DxeServicesLib.h>
-#include <Library/FdtPlatformLib.h>
+#include <Library/FdtLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiLib.h>
-#include <Library/FdtLib.h>
 #include <Protocol/RpiFirmware.h>
 #include <Guid/Fdt.h>
 #include <ConfigVars.h>
@@ -466,15 +463,9 @@ FdtDxeInitialize (
                   (VOID**)&mFwProtocol);
   ASSERT_EFI_ERROR (Status);
 
-  Status = BoardInfoGetRevisionCode (&mBoardRevision);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR,
-        "%a: Failed to get board revision code. Status=%r\n",
-        __func__, Status));
-  }
-
-  FdtImage = FdtPlatformGetBase ();
-  if (FdtImage == NULL) {
+  FdtImage = (VOID*)(UINTN)PcdGet32 (PcdFdtBaseAddress);
+  Retval = FdtCheckHeader (FdtImage);
+  if (Retval != 0) {
     /*
      * Any one of:
      * - Invalid config.txt device_tree_address (not PcdFdtBaseAddress)

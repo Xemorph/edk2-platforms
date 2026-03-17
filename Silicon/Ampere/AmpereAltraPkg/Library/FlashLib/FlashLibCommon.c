@@ -15,9 +15,8 @@
 
 #include "FlashLibCommon.h"
 
-BOOLEAN                       gFlashLibRuntime = FALSE;
-UINT8                         *gFlashLibPhysicalBuffer;
-UINT8                         *gFlashLibVirtualBuffer;
+UINT8  *gFlashLibPhysicalBuffer;
+UINT8  *gFlashLibVirtualBuffer;
 
 /**
   Convert Virtual Address to Physical Address at Runtime.
@@ -30,17 +29,13 @@ UINT8                         *gFlashLibVirtualBuffer;
 STATIC
 UINT8 *
 ConvertToPhysicalBuffer (
-  IN UINT8  *VirtualPtr,
-  IN UINT32 Size
+  IN UINT8   *VirtualPtr,
+  IN UINT32  Size
   )
 {
-  if (gFlashLibRuntime) {
-    ASSERT (VirtualPtr != NULL);
-    CopyMem (gFlashLibVirtualBuffer, VirtualPtr, Size);
-    return gFlashLibPhysicalBuffer;
-  }
-
-  return VirtualPtr;
+  ASSERT (VirtualPtr != NULL);
+  CopyMem (gFlashLibVirtualBuffer, VirtualPtr, Size);
+  return gFlashLibPhysicalBuffer;
 }
 
 /**
@@ -56,15 +51,15 @@ ConvertToPhysicalBuffer (
 EFI_STATUS
 EFIAPI
 FlashGetFailSafeInfo (
-  OUT UINTN  *FailSafeBase,
-  OUT UINT32 *FailSafeSize
+  OUT UINTN   *FailSafeBase,
+  OUT UINT32  *FailSafeSize
   )
 {
-  EFI_MM_COMMUNICATE_FAILSAFE_INFO_RESPONSE FailSafeInfo;
-  EFI_STATUS                                Status;
-  UINT64                                    MmData[5];
+  EFI_MM_COMMUNICATE_FAILSAFE_INFO_RESPONSE  FailSafeInfo;
+  EFI_STATUS                                 Status;
+  UINT64                                     MmData[5];
 
-  if (FailSafeBase == NULL || FailSafeSize == NULL ) {
+  if ((FailSafeBase == NULL) || (FailSafeSize == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
 
@@ -109,15 +104,15 @@ FlashGetFailSafeInfo (
 EFI_STATUS
 EFIAPI
 FlashGetNvRamInfo (
-  OUT UINTN  *NvRamBase,
-  OUT UINT32 *NvRamSize
+  OUT UINTN   *NvRamBase,
+  OUT UINT32  *NvRamSize
   )
 {
-  EFI_MM_COMMUNICATE_NVRAM_INFO_RESPONSE    NvRamInfo;
-  EFI_STATUS                                Status;
-  UINT64                                    MmData[5];
+  EFI_MM_COMMUNICATE_NVRAM_INFO_RESPONSE  NvRamInfo;
+  EFI_STATUS                              Status;
+  UINT64                                  MmData[5];
 
-  if (NvRamBase == NULL || NvRamSize == NULL) {
+  if ((NvRamBase == NULL) || (NvRamSize == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
 
@@ -161,15 +156,15 @@ FlashGetNvRamInfo (
 EFI_STATUS
 EFIAPI
 FlashGetNvRam2Info (
-  OUT UINTN  *NvRam2Base,
-  OUT UINT32 *NvRam2Size
+  OUT UINTN   *NvRam2Base,
+  OUT UINT32  *NvRam2Size
   )
 {
-  EFI_MM_COMMUNICATE_NVRAM_INFO_RESPONSE NvRam2Info;
-  EFI_STATUS                             Status;
-  UINT64                                 MmData[5];
+  EFI_MM_COMMUNICATE_NVRAM_INFO_RESPONSE  NvRam2Info;
+  EFI_STATUS                              Status;
+  UINT64                                  MmData[5];
 
-  if (NvRam2Base == NULL || NvRam2Size == NULL) {
+  if ((NvRam2Base == NULL) || (NvRam2Size == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
 
@@ -213,13 +208,13 @@ FlashGetNvRam2Info (
 EFI_STATUS
 EFIAPI
 FlashEraseCommand (
-  IN  UINTN  ByteAddress,
-  IN  UINT32 Length
+  IN  UINTN   ByteAddress,
+  IN  UINT32  Length
   )
 {
-  EFI_MM_COMMUNICATE_SPINOR_RESPONSE MmSpiNorRes;
-  EFI_STATUS                         Status;
-  UINT64                             MmData[5];
+  EFI_MM_COMMUNICATE_SPINOR_RESPONSE  MmSpiNorRes;
+  EFI_STATUS                          Status;
+  UINT64                              MmData[5];
 
   if (Length == 0) {
     return EFI_INVALID_PARAMETER;
@@ -261,18 +256,18 @@ FlashEraseCommand (
 EFI_STATUS
 EFIAPI
 FlashWriteCommand (
-  IN  UINTN  ByteAddress,
-  IN  VOID   *Buffer,
-  IN  UINT32 Length
+  IN  UINTN   ByteAddress,
+  IN  VOID    *Buffer,
+  IN  UINT32  Length
   )
 {
-  EFI_MM_COMMUNICATE_SPINOR_RESPONSE MmSpiNorRes;
-  EFI_STATUS                         Status;
-  UINT64                             MmData[5];
-  UINTN                              Remain, NumWrite;
-  UINTN                              Count = 0;
+  EFI_MM_COMMUNICATE_SPINOR_RESPONSE  MmSpiNorRes;
+  EFI_STATUS                          Status;
+  UINT64                              MmData[5];
+  UINTN                               Remain, NumWrite;
+  UINTN                               Count = 0;
 
-  if (Buffer == NULL || Length == 0) {
+  if ((Buffer == NULL) || (Length == 0)) {
     return EFI_INVALID_PARAMETER;
   }
 
@@ -286,11 +281,11 @@ FlashWriteCommand (
     MmData[3] = (UINT64)ConvertToPhysicalBuffer (Buffer + Count, NumWrite);
 
     Status = FlashMmCommunicate (
-              MmData,
-              sizeof (MmData),
-              &MmSpiNorRes,
-              sizeof (MmSpiNorRes)
-              );
+               MmData,
+               sizeof (MmData),
+               &MmSpiNorRes,
+               sizeof (MmSpiNorRes)
+               );
     if (EFI_ERROR (Status)) {
       return Status;
     }
@@ -301,7 +296,7 @@ FlashWriteCommand (
     }
 
     Remain -= NumWrite;
-    Count += NumWrite;
+    Count  += NumWrite;
   }
 
   return EFI_SUCCESS;
@@ -321,18 +316,18 @@ FlashWriteCommand (
 EFI_STATUS
 EFIAPI
 FlashReadCommand (
-  IN  UINTN  ByteAddress,
-  OUT VOID   *Buffer,
-  IN  UINT32 Length
+  IN  UINTN   ByteAddress,
+  OUT VOID    *Buffer,
+  IN  UINT32  Length
   )
 {
-  EFI_MM_COMMUNICATE_SPINOR_RESPONSE MmSpiNorRes;
-  EFI_STATUS                         Status;
-  UINT64                             MmData[5];
-  UINTN                              Remain, NumRead;
-  UINTN                              Count = 0;
+  EFI_MM_COMMUNICATE_SPINOR_RESPONSE  MmSpiNorRes;
+  EFI_STATUS                          Status;
+  UINT64                              MmData[5];
+  UINTN                               Remain, NumRead;
+  UINTN                               Count = 0;
 
-  if (Buffer == NULL || Length == 0) {
+  if ((Buffer == NULL) || (Length == 0)) {
     return EFI_INVALID_PARAMETER;
   }
 
@@ -346,11 +341,11 @@ FlashReadCommand (
     MmData[3] = (UINT64)gFlashLibPhysicalBuffer;  // Read data into the temp buffer with specified virtual address
 
     Status = FlashMmCommunicate (
-              MmData,
-              sizeof (MmData),
-              &MmSpiNorRes,
-              sizeof (MmSpiNorRes)
-              );
+               MmData,
+               sizeof (MmData),
+               &MmSpiNorRes,
+               sizeof (MmSpiNorRes)
+               );
     if (EFI_ERROR (Status)) {
       return Status;
     }
@@ -365,7 +360,7 @@ FlashReadCommand (
     //
     CopyMem ((VOID *)(Buffer + Count), (VOID *)gFlashLibVirtualBuffer, NumRead);
     Remain -= NumRead;
-    Count += NumRead;
+    Count  += NumRead;
   }
 
   return EFI_SUCCESS;

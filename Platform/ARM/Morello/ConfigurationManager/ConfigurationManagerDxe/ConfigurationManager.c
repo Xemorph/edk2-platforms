@@ -1,7 +1,7 @@
 /** @file
   Configuration Manager Dxe
 
-  Copyright (c) 2021, ARM Limited. All rights reserved.<BR>
+  Copyright (c) 2021 - 2024, Arm Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -20,20 +20,20 @@
 #include "ConfigurationManager.h"
 #include "Platform.h"
 
-extern EDKII_PLATFORM_REPOSITORY_INFO MorelloRepositoryInfo;
+extern EDKII_PLATFORM_REPOSITORY_INFO  MorelloRepositoryInfo;
 
 // The platform configuration repository information.
-EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
+EDKII_COMMON_PLATFORM_REPOSITORY_INFO  CommonPlatformInfo = {
   // Configuration Manager information
   { CONFIGURATION_MANAGER_REVISION, CFG_MGR_OEM_ID },
 
   // Boot architecture information
   { EFI_ACPI_6_3_ARM_PSCI_COMPLIANT },              // BootArchFlags
 
-#ifdef HEADLESS_PLATFORM
+ #ifdef HEADLESS_PLATFORM
   // Fixed feature flag information
   { EFI_ACPI_6_3_HEADLESS },                        // Fixed feature flags
-#endif
+ #endif
 
   // Power management profile information
   { EFI_ACPI_6_3_PM_PROFILE_ENTERPRISE_SERVER },    // PowerManagement Profile
@@ -91,7 +91,7 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
   // Generic Timer Block Information
   {
     {
-     // The physical base address for the GT Block Timer structure
+      // The physical base address for the GT Block Timer structure
       MORELLO_GT_BLOCK_CTL_BASE,
       // The number of timer frames implemented in the GT Block
       MORELLO_TIMER_FRAMES_COUNT,
@@ -144,16 +144,20 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
     FixedPcdGet32 (PL011UartInterrupt),                     // Interrupt
     FixedPcdGet64 (PcdUartDefaultBaudRate),                 // BaudRate
     FixedPcdGet32 (PL011UartClkInHz),                       // Clock
-    EFI_ACPI_DBG2_PORT_SUBTYPE_SERIAL_ARM_PL011_UART        // Port subtype
+    EFI_ACPI_DBG2_PORT_SUBTYPE_SERIAL_ARM_PL011_UART,       // Port subtype
+    0x1000,                                                 // Address length
+    EFI_ACPI_6_3_DWORD,                                     // Access size
   },
 
   // Debug Serial Port
   {
     FixedPcdGet64 (PcdSerialDbgRegisterBase),               // BaseAddress
-    0,                                                      // Interrupt -unused
+    173,                                                    // Interrupt
     FixedPcdGet64 (PcdSerialDbgUartBaudRate),               // BaudRate
     FixedPcdGet32 (PcdSerialDbgUartClkInHz),                // Clock
-    EFI_ACPI_DBG2_PORT_SUBTYPE_SERIAL_ARM_PL011_UART        // Port subtype
+    EFI_ACPI_DBG2_PORT_SUBTYPE_SERIAL_ARM_PL011_UART,       // Port subtype
+    0x1000,                                                 // Address length
+    EFI_ACPI_6_3_DWORD,                                     // Access size
   },
 
   // Processor Hierarchy Nodes
@@ -169,10 +173,10 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
         EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
         EFI_ACPI_6_3_PPTT_NODE_IS_NOT_LEAF,
         EFI_ACPI_6_3_PPTT_IMPLEMENTATION_IDENTICAL
-      ),
+        ),
       // CM_OBJECT_TOKEN  ParentToken
       CM_NULL_TOKEN,
-      // CM_OBJECT_TOKEN  GicCToken
+      // CM_OBJECT_TOKEN  AcpiIdObjectToken
       CM_NULL_TOKEN,
       // UINT32  NoOfPrivateResources
       SOC_RESOURCE_COUNT,
@@ -191,10 +195,10 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
         EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
         EFI_ACPI_6_3_PPTT_NODE_IS_NOT_LEAF,
         EFI_ACPI_6_3_PPTT_IMPLEMENTATION_IDENTICAL
-      ),
+        ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[0]), // -> Package
-      // CM_OBJECT_TOKEN  GicCToken
+      // CM_OBJECT_TOKEN  AcpiIdObjectToken
       CM_NULL_TOKEN,
       // UINT32  NoOfPrivateResources
       CLUSTER_RESOURCE_COUNT,
@@ -212,10 +216,10 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
         EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
         EFI_ACPI_6_3_PPTT_NODE_IS_NOT_LEAF,
         EFI_ACPI_6_3_PPTT_IMPLEMENTATION_IDENTICAL
-      ),
+        ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[0]), // -> Package
-      // CM_OBJECT_TOKEN  GicCToken
+      // CM_OBJECT_TOKEN  AcpiIdObjectToken
       CM_NULL_TOKEN,
       // UINT32  NoOfPrivateResources
       CLUSTER_RESOURCE_COUNT,
@@ -233,10 +237,10 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
         EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
         EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
         EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
-      ),
+        ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[1]), // -> 'cluster in Cluster0
-      // CM_OBJECT_TOKEN  GicCToken
+      // CM_OBJECT_TOKEN  AcpiIdObjectToken
       REFERENCE_TOKEN (GicCInfo[0]),
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
@@ -254,10 +258,10 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
         EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
         EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
         EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
-      ),
+        ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[1]), // -> 'cluster in Cluster0
-      // CM_OBJECT_TOKEN  GicCToken
+      // CM_OBJECT_TOKEN  AcpiIdObjectToken
       REFERENCE_TOKEN (GicCInfo[1]),
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
@@ -275,10 +279,10 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
         EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
         EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
         EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
-      ),
+        ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[2]), // -> 'cluster in Cluster1
-      // CM_OBJECT_TOKEN  GicCToken
+      // CM_OBJECT_TOKEN  AcpiIdObjectToken
       REFERENCE_TOKEN (GicCInfo[2]),
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
@@ -297,10 +301,10 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
         EFI_ACPI_6_3_PPTT_PROCESSOR_IS_NOT_THREAD,
         EFI_ACPI_6_3_PPTT_NODE_IS_LEAF,
         EFI_ACPI_6_3_PPTT_IMPLEMENTATION_NOT_IDENTICAL
-      ),
+        ),
       // CM_OBJECT_TOKEN  ParentToken
       REFERENCE_TOKEN (ProcHierarchyInfo[2]), // -> 'cluster in Cluster1
-      // CM_OBJECT_TOKEN  GicCToken
+      // CM_OBJECT_TOKEN  AcpiIdObjectToken
       REFERENCE_TOKEN (GicCInfo[3]),
       // UINT32  NoOfPrivateResources
       CORE_RESOURCE_COUNT,
@@ -318,11 +322,12 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       SIZE_1MB,                        // UINT32  Size
       2048,                            // UINT32  NumberOfSets
       8,                               // UINT32  Associativity
-      CACHE_ATTRIBUTES (               // UINT8   Attributes
+      CACHE_ATTRIBUTES (
+        // UINT8   Attributes
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
-      ),
+        ),
       64                               // UINT16  LineSize
     },
     // 'core's L1 instruction cache
@@ -332,11 +337,12 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       SIZE_64KB,                       // UINT32  Size
       256,                             // UINT32  NumberOfSets
       4,                               // UINT32  Associativity
-      CACHE_ATTRIBUTES (               // UINT8   Attributes
+      CACHE_ATTRIBUTES (
+        // UINT8   Attributes
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_INSTRUCTION,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
-      ),
+        ),
       64                               // UINT16  LineSize
     },
     // 'core's L1 data cache
@@ -346,11 +352,12 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       SIZE_64KB,                       // UINT32  Size
       256,                             // UINT32  NumberOfSets
       4,                               // UINT32  Associativity
-      CACHE_ATTRIBUTES (               // UINT8   Attributes
+      CACHE_ATTRIBUTES (
+        // UINT8   Attributes
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ_WRITE,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_DATA,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
-      ),
+        ),
       64                               // UINT16  LineSize
     },
     // cores's L2 cache
@@ -360,11 +367,12 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       SIZE_1MB,                        // UINT32  Size
       2048,                            // UINT32  NumberOfSets
       8,                               // UINT32  Associativity
-      CACHE_ATTRIBUTES (               // UINT8   Attributes
+      CACHE_ATTRIBUTES (
+        // UINT8   Attributes
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
-      ),
+        ),
       64                               // UINT16  LineSize
     },
     // slc cache
@@ -374,11 +382,12 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
       SIZE_8MB,                        // UINT32  Size
       4096,                            // UINT32  NumberOfSets
       16,                              // UINT32  Associativity
-      CACHE_ATTRIBUTES (               // UINT8   Attributes
+      CACHE_ATTRIBUTES (
+        // UINT8   Attributes
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_ALLOCATION_READ,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_CACHE_TYPE_UNIFIED,
         EFI_ACPI_6_3_CACHE_ATTRIBUTES_WRITE_POLICY_WRITE_BACK
-      ),
+        ),
       64                               // UINT16  LineSize
     },
   },
@@ -388,7 +397,7 @@ EDKII_COMMON_PLATFORM_REPOSITORY_INFO CommonPlatformInfo = {
   },
   // Resources private to each individual 'core instance in Cluster
   {
-    { REFERENCE_TOKEN (CacheInfo[1]) }, // -> 'core's L1 I-cache in Cluster
+    { REFERENCE_TOKEN (CacheInfo[1]) },// -> 'core's L1 I-cache in Cluster
     { REFERENCE_TOKEN (CacheInfo[2]) }  // -> 'core's L1 D-cache in Cluster
   },
 
@@ -413,16 +422,16 @@ EFI_STATUS
 EFIAPI
 HandleCmObject (
   IN  CONST CM_OBJECT_ID                CmObjectId,
-  IN        VOID                *       Object,
+  IN        VOID                        *Object,
   IN  CONST UINTN                       ObjectSize,
   IN  CONST UINTN                       ObjectCount,
-  IN  OUT   CM_OBJ_DESCRIPTOR   * CONST CmObjectDesc
+  IN  OUT   CM_OBJ_DESCRIPTOR   *CONST  CmObjectDesc
   )
 {
   CmObjectDesc->ObjectId = CmObjectId;
-  CmObjectDesc->Size = ObjectSize;
-  CmObjectDesc->Data = (VOID*)Object;
-  CmObjectDesc->Count = ObjectCount;
+  CmObjectDesc->Size     = ObjectSize;
+  CmObjectDesc->Data     = (VOID *)Object;
+  CmObjectDesc->Count    = ObjectCount;
   DEBUG ((
     DEBUG_INFO,
     "INFO: CmObjectId = %x, Ptr = 0x%p, Size = %d, Count = %d\n",
@@ -455,23 +464,24 @@ HandleCmObject (
 EFI_STATUS
 EFIAPI
 HandleCmObjectRefByToken (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
-  IN        VOID                                  *       Object,
+  IN        VOID                                          *Object,
   IN  CONST UINTN                                         ObjectSize,
   IN  CONST UINTN                                         ObjectCount,
   IN  CONST CM_OBJECT_TOKEN                               Token,
   IN  CONST CM_OBJECT_HANDLER_PROC                        HandlerProc,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObjectDesc
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObjectDesc
   )
 {
   EFI_STATUS  Status;
+
   CmObjectDesc->ObjectId = CmObjectId;
   if (Token == CM_NULL_TOKEN) {
-    CmObjectDesc->Size = ObjectSize;
-    CmObjectDesc->Data = (VOID*)Object;
+    CmObjectDesc->Size  = ObjectSize;
+    CmObjectDesc->Data  = (VOID *)Object;
     CmObjectDesc->Count = ObjectCount;
-    Status = EFI_SUCCESS;
+    Status              = EFI_SUCCESS;
   } else {
     Status = HandlerProc (This, CmObjectId, Token, CmObjectDesc);
   }
@@ -479,7 +489,7 @@ HandleCmObjectRefByToken (
   DEBUG ((
     DEBUG_INFO,
     "INFO: Token = 0x%p, CmObjectId = %x, Ptr = 0x%p, Size = %d, Count = %d\n",
-    (VOID*)Token,
+    (VOID *)Token,
     CmObjectId,
     CmObjectDesc->Data,
     CmObjectDesc->Size,
@@ -508,14 +518,15 @@ STATIC
 EFI_STATUS
 EFIAPI
 HandleCmObjectSearchPlatformRepo (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               Token,
   IN  CONST CM_OBJECT_HANDLER_PROC                        HandlerProc,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObjectDesc
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObjectDesc
   )
 {
   EFI_STATUS  Status;
+
   CmObjectDesc->ObjectId = CmObjectId;
   if (Token == CM_NULL_TOKEN) {
     DEBUG ((
@@ -531,7 +542,7 @@ HandleCmObjectSearchPlatformRepo (
     DEBUG_INFO,
     "INFO: Token = 0x%p, CmObjectId = %x, Ptr = 0x%p, Size = %d, Count = %d\n",
     CmObjectId,
-    (VOID*)Token,
+    (VOID *)Token,
     CmObjectDesc->Data,
     CmObjectDesc->Size,
     CmObjectDesc->Count
@@ -550,7 +561,7 @@ STATIC
 EFI_STATUS
 EFIAPI
 InitializePlatformRepository (
-  IN  EDKII_PLATFORM_REPOSITORY_INFO  * CONST PlatformRepo
+  IN  EDKII_PLATFORM_REPOSITORY_INFO  *CONST  PlatformRepo
   )
 {
   return EFI_SUCCESS;
@@ -571,13 +582,13 @@ InitializePlatformRepository (
 EFI_STATUS
 EFIAPI
 GetGTBlockTimerFrameInfo (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               Token,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
-  EDKII_COMMON_PLATFORM_REPOSITORY_INFO   * PlatformRepo;
+  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  *PlatformRepo;
 
   if ((This == NULL) || (CmObject == NULL)) {
     ASSERT (This != NULL);
@@ -592,9 +603,9 @@ GetGTBlockTimerFrameInfo (
   }
 
   CmObject->ObjectId = CmObjectId;
-  CmObject->Size = sizeof (PlatformRepo->GTBlock0TimerInfo);
-  CmObject->Data = (VOID*)&PlatformRepo->GTBlock0TimerInfo;
-  CmObject->Count = ARRAY_SIZE (PlatformRepo->GTBlock0TimerInfo);
+  CmObject->Size     = sizeof (PlatformRepo->GTBlock0TimerInfo);
+  CmObject->Data     = (VOID *)&PlatformRepo->GTBlock0TimerInfo;
+  CmObject->Count    = ARRAY_SIZE (PlatformRepo->GTBlock0TimerInfo);
   return EFI_SUCCESS;
 }
 
@@ -614,14 +625,14 @@ GetGTBlockTimerFrameInfo (
 EFI_STATUS
 EFIAPI
 GetGicCInfo (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               SearchToken,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
-  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  * PlatformRepo;
-  UINT32                                   ObjIndex;
+  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  *PlatformRepo;
+  UINT32                                 ObjIndex;
 
   if ((This == NULL) || (CmObject == NULL)) {
     ASSERT (This != NULL);
@@ -634,9 +645,9 @@ GetGicCInfo (
   for (ObjIndex = 0; ObjIndex < PLAT_CPU_COUNT; ObjIndex++) {
     if (SearchToken == (CM_OBJECT_TOKEN)&PlatformRepo->GicCInfo[ObjIndex]) {
       CmObject->ObjectId = CmObjectId;
-      CmObject->Size = sizeof (PlatformRepo->GicCInfo[ObjIndex]);
-      CmObject->Data = (VOID*)&PlatformRepo->GicCInfo[ObjIndex];
-      CmObject->Count = 1;
+      CmObject->Size     = sizeof (PlatformRepo->GicCInfo[ObjIndex]);
+      CmObject->Data     = (VOID *)&PlatformRepo->GicCInfo[ObjIndex];
+      CmObject->Count    = 1;
       return EFI_SUCCESS;
     }
   }
@@ -650,7 +661,7 @@ GetGicCInfo (
   @param [in]      This           Pointer to the Configuration Manager Protocol.
   @param [in]      CmObjectId     The Object ID of the CM object requested
   @param [in]      SearchToken    A unique token for identifying the requested
-                                  CM_ARM_OBJ_REF list.
+                                  CM_ARCH_COMMON_OBJ_REF list.
   @param [in, out] CmObject       Pointer to the Configuration Manager Object
                                   descriptor describing the requested Object.
 
@@ -661,13 +672,13 @@ GetGicCInfo (
 EFI_STATUS
 EFIAPI
 GetCmObjRefs (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               SearchToken,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
-  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  * CommonPlatRepo;
+  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  *CommonPlatRepo;
 
   if ((This == NULL) || (CmObject == NULL)) {
     ASSERT (This != NULL);
@@ -678,20 +689,22 @@ GetCmObjRefs (
   CommonPlatRepo = This->PlatRepoInfo->CommonPlatRepoInfo;
 
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->ClusterResources) {
-    CmObject->Size = sizeof (CommonPlatRepo->ClusterResources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->ClusterResources;
+    CmObject->Size  = sizeof (CommonPlatRepo->ClusterResources);
+    CmObject->Data  = (VOID *)&CommonPlatRepo->ClusterResources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->ClusterResources);
     return EFI_SUCCESS;
   }
+
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->CoreResources) {
-    CmObject->Size = sizeof (CommonPlatRepo->CoreResources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->CoreResources;
+    CmObject->Size  = sizeof (CommonPlatRepo->CoreResources);
+    CmObject->Data  = (VOID *)&CommonPlatRepo->CoreResources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->CoreResources);
     return EFI_SUCCESS;
   }
+
   if (SearchToken == (CM_OBJECT_TOKEN)&CommonPlatRepo->SocResources) {
-    CmObject->Size = sizeof (CommonPlatRepo->SocResources);
-    CmObject->Data = (VOID*)&CommonPlatRepo->SocResources;
+    CmObject->Size  = sizeof (CommonPlatRepo->SocResources);
+    CmObject->Data  = (VOID *)&CommonPlatRepo->SocResources;
     CmObject->Count = ARRAY_SIZE (CommonPlatRepo->SocResources);
     return EFI_SUCCESS;
   }
@@ -715,14 +728,14 @@ GetCmObjRefs (
 EFI_STATUS
 EFIAPI
 GetStandardNameSpaceObject (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
-  EFI_STATUS                               Status;
-  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  * CommonPlatRepo;
+  EFI_STATUS                             Status;
+  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  *CommonPlatRepo;
 
   if ((This == NULL) || (CmObject == NULL)) {
     ASSERT (This != NULL);
@@ -732,8 +745,8 @@ GetStandardNameSpaceObject (
 
   CommonPlatRepo = This->PlatRepoInfo->CommonPlatRepoInfo;
 
-  //First search the FVP/SoC platform specific objects and enter the below
-  //if condition only when this function returns EFI_NOT_FOUND status.
+  // First search the FVP/SoC platform specific objects and enter the below
+  // if condition only when this function returns EFI_NOT_FOUND status.
   Status = GetStandardNameSpaceObjectPlat (This, CmObjectId, Token, CmObject);
 
   if (Status == EFI_NOT_FOUND) {
@@ -748,7 +761,8 @@ GetStandardNameSpaceObject (
                    );
         break;
 
-      default: {
+      default:
+      {
         Status = EFI_NOT_FOUND;
         DEBUG ((
           DEBUG_ERROR,
@@ -758,8 +772,137 @@ GetStandardNameSpaceObject (
           ));
         break;
       }
-    } //switch
+    } // switch
   }
+
+  return Status;
+}
+
+/** Return an Arch Common namespace object.
+
+  @param [in]      This        Pointer to the Configuration Manager Protocol.
+  @param [in]      CmObjectId  The Configuration Manager Object ID.
+  @param [in]      Token       An optional token identifying the object. If
+                               unused this must be CM_NULL_TOKEN.
+  @param [in, out] CmObject    Pointer to the Configuration Manager Object
+                               descriptor describing the requested Object.
+
+  @retval EFI_SUCCESS           Success.
+  @retval EFI_INVALID_PARAMETER A parameter is invalid.
+  @retval EFI_NOT_FOUND         The required object information is not found.
+**/
+EFI_STATUS
+EFIAPI
+GetArchCommonNameSpaceObject (
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
+  IN  CONST CM_OBJECT_ID                                  CmObjectId,
+  IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
+  )
+{
+  EFI_STATUS                             Status;
+  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  *CommonPlatRepo;
+
+  if ((This == NULL) || (CmObject == NULL)) {
+    ASSERT (This != NULL);
+    ASSERT (CmObject != NULL);
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Status         = EFI_NOT_FOUND;
+  CommonPlatRepo = This->PlatRepoInfo->CommonPlatRepoInfo;
+
+  // Search for the FVP platform specific Arch Common namespace objects
+  Status = GetArchCommonNameSpaceObjectPlat (This, CmObjectId, Token, CmObject);
+
+  // Get the object if not found in the platform specific search
+  if (Status == EFI_NOT_FOUND) {
+    switch (GET_CM_OBJECT_ID (CmObjectId)) {
+      case EArchCommonObjPowerManagementProfileInfo:
+        Status = HandleCmObject (
+                   CmObjectId,
+                   &CommonPlatRepo->PmProfileInfo,
+                   sizeof (CommonPlatRepo->PmProfileInfo),
+                   1,
+                   CmObject
+                   );
+        break;
+
+      case EArchCommonObjConsolePortInfo:
+        Status = HandleCmObject (
+                   CmObjectId,
+                   &CommonPlatRepo->SpcrSerialPort,
+                   sizeof (CommonPlatRepo->SpcrSerialPort),
+                   1,
+                   CmObject
+                   );
+        break;
+
+      case EArchCommonObjSerialDebugPortInfo:
+        Status = HandleCmObject (
+                   CmObjectId,
+                   &CommonPlatRepo->DbgSerialPort,
+                   sizeof (CommonPlatRepo->DbgSerialPort),
+                   1,
+                   CmObject
+                   );
+        break;
+
+ #ifdef HEADLESS_PLATFORM
+      case EArchCommonObjFixedFeatureFlags:
+        Status = HandleCmObject (
+                   CmObjectId,
+                   &CommonPlatRepo->FixedFeatureFlags,
+                   sizeof (CommonPlatRepo->FixedFeatureFlags),
+                   1,
+                   CmObject
+                   );
+        break;
+ #endif
+
+      case EArchCommonObjCmRef:
+        Status = HandleCmObjectSearchPlatformRepo (
+                   This,
+                   CmObjectId,
+                   Token,
+                   GetCmObjRefs,
+                   CmObject
+                   );
+        break;
+
+      case EArchCommonObjProcHierarchyInfo:
+        Status = HandleCmObject (
+                   CmObjectId,
+                   CommonPlatRepo->ProcHierarchyInfo,
+                   sizeof (CommonPlatRepo->ProcHierarchyInfo),
+                   PLAT_PROC_HIERARCHY_NODE_COUNT,
+                   CmObject
+                   );
+        break;
+
+      case EArchCommonObjCacheInfo:
+        Status = HandleCmObject (
+                   CmObjectId,
+                   CommonPlatRepo->CacheInfo,
+                   sizeof (CommonPlatRepo->CacheInfo),
+                   ARRAY_SIZE (CommonPlatRepo->CacheInfo),
+                   CmObject
+                   );
+        break;
+
+      default:
+      {
+        Status = EFI_NOT_FOUND;
+        DEBUG ((
+          DEBUG_INFO,
+          "INFO: Object 0x%x. Status = %r\n",
+          CmObjectId,
+          Status
+          ));
+        break;
+      }
+    } // switch
+  } // if
 
   return Status;
 }
@@ -780,24 +923,25 @@ GetStandardNameSpaceObject (
 EFI_STATUS
 EFIAPI
 GetArmNameSpaceObject (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
-  EFI_STATUS                               Status;
-  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  * CommonPlatRepo;
+  EFI_STATUS                             Status;
+  EDKII_COMMON_PLATFORM_REPOSITORY_INFO  *CommonPlatRepo;
 
   if ((This == NULL) || (CmObject == NULL)) {
     ASSERT (This != NULL);
     ASSERT (CmObject != NULL);
     return EFI_INVALID_PARAMETER;
   }
+
   CommonPlatRepo = This->PlatRepoInfo->CommonPlatRepoInfo;
 
-  //First search the FVP/SoC platform specific objects and enter the below
-  //if condition only when this function return EFI_NOT_FOUND status.
+  // First search the FVP/SoC platform specific objects and enter the below
+  // if condition only when this function return EFI_NOT_FOUND status.
   Status = GetArmNameSpaceObjectPlat (This, CmObjectId, Token, CmObject);
 
   if (Status == EFI_NOT_FOUND) {
@@ -810,28 +954,7 @@ GetArmNameSpaceObject (
                    1,
                    CmObject
                    );
-      break;
-
-#ifdef HEADLESS_PLATFORM
-      case EArmObjFixedFeatureFlags:
-        Status = HandleCmObject (
-                   CmObjectId,
-                   &CommonPlatRepo->FixedFeatureFlags,
-                   sizeof (CommonPlatRepo->FixedFeatureFlags),
-                   1,
-                   CmObject
-                   );
-      break;
-#endif
-      case EArmObjPowerManagementProfileInfo:
-        Status = HandleCmObject (
-                   CmObjectId,
-                   &CommonPlatRepo->PmProfileInfo,
-                   sizeof (CommonPlatRepo->PmProfileInfo),
-                   1,
-                   CmObject
-                   );
-      break;
+        break;
 
       case EArmObjGenericTimerInfo:
         Status = HandleCmObject (
@@ -841,7 +964,7 @@ GetArmNameSpaceObject (
                    1,
                    CmObject
                    );
-      break;
+        break;
 
       case EArmObjPlatformGenericWatchdogInfo:
         Status = HandleCmObject (
@@ -851,7 +974,7 @@ GetArmNameSpaceObject (
                    1,
                    CmObject
                    );
-      break;
+        break;
 
       case EArmObjPlatformGTBlockInfo:
         Status = HandleCmObject (
@@ -861,7 +984,7 @@ GetArmNameSpaceObject (
                    1,
                    CmObject
                    );
-      break;
+        break;
 
       case EArmObjGTBlockTimerFrameInfo:
         Status = HandleCmObjectRefByToken (
@@ -874,7 +997,7 @@ GetArmNameSpaceObject (
                    GetGTBlockTimerFrameInfo,
                    CmObject
                    );
-      break;
+        break;
 
       case EArmObjGicCInfo:
         Status = HandleCmObjectRefByToken (
@@ -887,7 +1010,7 @@ GetArmNameSpaceObject (
                    GetGicCInfo,
                    CmObject
                    );
-      break;
+        break;
 
       case EArmObjGicDInfo:
         Status = HandleCmObject (
@@ -897,7 +1020,7 @@ GetArmNameSpaceObject (
                    1,
                    CmObject
                    );
-      break;
+        break;
 
       case EArmObjGicRedistributorInfo:
         Status = HandleCmObject (
@@ -907,59 +1030,10 @@ GetArmNameSpaceObject (
                    1,
                    CmObject
                    );
-      break;
+        break;
 
-      case EArmObjSerialConsolePortInfo:
-        Status = HandleCmObject (
-                   CmObjectId,
-                   &CommonPlatRepo->SpcrSerialPort,
-                   sizeof (CommonPlatRepo->SpcrSerialPort),
-                   1,
-                   CmObject
-                   );
-      break;
-
-      case EArmObjSerialDebugPortInfo:
-        Status = HandleCmObject (
-                   CmObjectId,
-                   &CommonPlatRepo->DbgSerialPort,
-                   sizeof (CommonPlatRepo->DbgSerialPort),
-                   1,
-                   CmObject
-                   );
-      break;
-
-      case EArmObjProcHierarchyInfo:
-        Status = HandleCmObject (
-                   CmObjectId,
-                   CommonPlatRepo->ProcHierarchyInfo,
-                   sizeof (CommonPlatRepo->ProcHierarchyInfo),
-                   PLAT_PROC_HIERARCHY_NODE_COUNT,
-                   CmObject
-                   );
-      break;
-
-      case EArmObjCacheInfo:
-        Status = HandleCmObject (
-                   CmObjectId,
-                   CommonPlatRepo->CacheInfo,
-                   sizeof (CommonPlatRepo->CacheInfo),
-                   ARRAY_SIZE (CommonPlatRepo->CacheInfo),
-                   CmObject
-                   );
-      break;
-
-      case EArmObjCmRef:
-        Status = HandleCmObjectSearchPlatformRepo (
-                   This,
-                   CmObjectId,
-                   Token,
-                   GetCmObjRefs,
-                   CmObject
-                   );
-      break;
-
-      default: {
+      default:
+      {
         Status = EFI_NOT_FOUND;
         DEBUG ((
           DEBUG_INFO,
@@ -969,8 +1043,9 @@ GetArmNameSpaceObject (
           ));
         break;
       }
-    }//switch
+    }// switch
   }
+
   return Status;
 }
 
@@ -990,10 +1065,10 @@ GetArmNameSpaceObject (
 EFI_STATUS
 EFIAPI
 GetOemNameSpaceObject (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
   EFI_STATUS  Status;
@@ -1006,7 +1081,8 @@ GetOemNameSpaceObject (
   }
 
   switch (GET_CM_OBJECT_ID (CmObjectId)) {
-    default: {
+    default:
+    {
       Status = EFI_NOT_FOUND;
       DEBUG ((
         DEBUG_ERROR,
@@ -1039,10 +1115,10 @@ GetOemNameSpaceObject (
 EFI_STATUS
 EFIAPI
 MorelloPlatformGetObject (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
-  IN  OUT   CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN  OUT   CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
   EFI_STATUS  Status;
@@ -1057,13 +1133,17 @@ MorelloPlatformGetObject (
     case EObjNameSpaceStandard:
       Status = GetStandardNameSpaceObject (This, CmObjectId, Token, CmObject);
       break;
+    case EObjNameSpaceArchCommon:
+      Status = GetArchCommonNameSpaceObject (This, CmObjectId, Token, CmObject);
+      break;
     case EObjNameSpaceArm:
       Status = GetArmNameSpaceObject (This, CmObjectId, Token, CmObject);
       break;
     case EObjNameSpaceOem:
       Status = GetOemNameSpaceObject (This, CmObjectId, Token, CmObject);
       break;
-    default: {
+    default:
+    {
       Status = EFI_INVALID_PARAMETER;
       DEBUG ((
         DEBUG_ERROR,
@@ -1094,10 +1174,10 @@ MorelloPlatformGetObject (
 EFI_STATUS
 EFIAPI
 MorelloPlatformSetObject (
-  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  * CONST This,
+  IN  CONST EDKII_CONFIGURATION_MANAGER_PROTOCOL  *CONST  This,
   IN  CONST CM_OBJECT_ID                                  CmObjectId,
   IN  CONST CM_OBJECT_TOKEN                               Token OPTIONAL,
-  IN        CM_OBJ_DESCRIPTOR                     * CONST CmObject
+  IN        CM_OBJ_DESCRIPTOR                     *CONST  CmObject
   )
 {
   return EFI_UNSUPPORTED;
@@ -1107,8 +1187,8 @@ MorelloPlatformSetObject (
 */
 STATIC
 CONST
-EDKII_CONFIGURATION_MANAGER_PROTOCOL MorelloPlatformConfigManagerProtocol = {
-  CREATE_REVISION(1,0),
+EDKII_CONFIGURATION_MANAGER_PROTOCOL  MorelloPlatformConfigManagerProtocol = {
+  CREATE_REVISION (1,       0),
   MorelloPlatformGetObject,
   MorelloPlatformSetObject,
   &MorelloRepositoryInfo
@@ -1128,11 +1208,11 @@ EDKII_CONFIGURATION_MANAGER_PROTOCOL MorelloPlatformConfigManagerProtocol = {
 EFI_STATUS
 EFIAPI
 ConfigurationManagerDxeInitialize (
-  IN EFI_HANDLE          ImageHandle,
-  IN EFI_SYSTEM_TABLE  * SystemTable
+  IN EFI_HANDLE        ImageHandle,
+  IN EFI_SYSTEM_TABLE  *SystemTable
   )
 {
-  EFI_STATUS         Status;
+  EFI_STATUS  Status;
 
   // Initialize the Platform Configuration Repository before installing the
   // Configuration Manager Protocol
@@ -1152,7 +1232,7 @@ ConfigurationManagerDxeInitialize (
                   &ImageHandle,
                   &gEdkiiConfigurationManagerProtocolGuid,
                   EFI_NATIVE_INTERFACE,
-                  (VOID*)&MorelloPlatformConfigManagerProtocol
+                  (VOID *)&MorelloPlatformConfigManagerProtocol
                   );
   if (EFI_ERROR (Status)) {
     DEBUG ((

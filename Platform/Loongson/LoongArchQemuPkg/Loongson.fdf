@@ -176,11 +176,17 @@ INF  OvmfPkg/VirtioGpuDxe/VirtioGpu.inf
 INF  OvmfPkg/PlatformDxe/Platform.inf
 
 #
-# SATA/SCSI
+# SCSI
 #
-INF  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
 INF  MdeModulePkg/Bus/Scsi/ScsiBusDxe/ScsiBusDxe.inf
 INF  MdeModulePkg/Bus/Scsi/ScsiDiskDxe/ScsiDiskDxe.inf
+
+#
+# SATA
+#
+INF  MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
+INF  MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
+INF  MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
 
 #
 # NVME
@@ -224,7 +230,7 @@ INF  OvmfPkg/AcpiPlatformDxe/AcpiPlatformDxe.inf
 
 #
 # Network modules
-#!include NetworkPkg/Network.fdf.inc
+!include NetworkPkg/Network.fdf.inc
 
 #
 # File system

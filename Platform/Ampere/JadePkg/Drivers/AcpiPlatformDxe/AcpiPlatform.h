@@ -15,7 +15,6 @@
 #include <Guid/EventGroup.h>
 #include <Guid/PlatformInfoHob.h>
 #include <IndustryStandard/Acpi63.h>
-#include <Library/ArmLib/ArmLibPrivate.h>
 #include <Library/AcpiLib.h>
 #include <Library/AmpereCpuLib.h>
 #include <Library/BaseMemoryLib.h>
@@ -80,6 +79,23 @@ AcpiInstallMcfg (
 EFI_STATUS
 EFIAPI
 AcpiInstallIort (
+  VOID
+  );
+
+/**
+  Install SPMI (Service Processor Management Interface table) table.
+
+  @retval EFI_SUCCESS   The table was installed successfully.
+  @retval Others        Failed to install the table.
+
+**/
+EFI_STATUS
+AcpiInstallSpmiTable (
+  VOID
+  );
+
+EFI_STATUS
+AcpiInstallBdatTable (
   VOID
   );
 

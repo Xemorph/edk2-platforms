@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2011 - 2021, Arm Limited. All rights reserved.
+#  Copyright (c) 2011 - 2024, Arm Limited. All rights reserved.
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -80,8 +80,14 @@ FvNameGuid         = 87940482-fc81-41c3-87e6-399cf85ac8a0
 !if $(SECURE_BOOT_ENABLE) == TRUE
   INF SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
 !endif
+
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == TRUE
+  INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
+!else
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
   INF MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
+!endif
+
   INF MdeModulePkg/Universal/MonotonicCounterRuntimeDxe/MonotonicCounterRuntimeDxe.inf
   INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
   INF EmbeddedPkg/RealTimeClockRuntimeDxe/RealTimeClockRuntimeDxe.inf
@@ -110,9 +116,11 @@ FvNameGuid         = 87940482-fc81-41c3-87e6-399cf85ac8a0
   INF MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   INF MdeModulePkg/Universal/SerialDxe/SerialDxe.inf
 
-  INF ArmPkg/Drivers/ArmGic/ArmGicDxe.inf
+  INF ArmPkg/Drivers/ArmGicDxe/ArmGicDxe.inf
   INF ArmPkg/Drivers/TimerDxe/TimerDxe.inf
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == FALSE || $(ENABLE_FIRMWARE_UPDATE) == FALSE
   INF Platform/ARM/Drivers/NorFlashDxe/NorFlashDxe.inf
+!endif
 !ifdef EDK2_ENABLE_PL111
   INF ArmPlatformPkg/Drivers/LcdGraphicsOutputDxe/LcdGraphicsOutputDxe.inf
 !endif
@@ -168,6 +176,9 @@ FvNameGuid         = 87940482-fc81-41c3-87e6-399cf85ac8a0
   INF MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
   INF MdeModulePkg/Application/UiApp/UiApp.inf
 
+!if $(ENABLE_STMM) == TRUE
+  INF ArmPkg/Drivers/MmCommunicationDxe/MmCommunication.inf
+!endif
 
   #
   # PCI Support
@@ -206,6 +217,24 @@ FvNameGuid         = 87940482-fc81-41c3-87e6-399cf85ac8a0
   }
 !endif
 
+  #
+  # Firmware Performance Data Table (FPDT)
+  #
+  INF MdeModulePkg/Universal/ReportStatusCodeRouter/RuntimeDxe/ReportStatusCodeRouterRuntimeDxe.inf
+  INF MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTableDxe/FirmwarePerformanceDxe.inf
+
+  #
+  # Firmware update
+  #
+!if $(ENABLE_FIRMWARE_UPDATE) == TRUE
+  !include Platform/ARM/Features/Fwu/FmpSystemFipImage.fdf.inc
+!endif
+
+!if $(ENABLE_TPM) == TRUE
+  INF SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf
+  INF SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf
+!endif
+
 [FV.FVMAIN_COMPACT]
 FvAlignment        = 16
 ERASE_POLARITY     = 1
@@ -224,17 +253,27 @@ READ_STATUS        = TRUE
 READ_LOCK_CAP      = TRUE
 READ_LOCK_STATUS   = TRUE
 
-!if $(EDK2_SKIP_PEICORE) == 1
-  INF ArmPlatformPkg/PrePi/PeiUniCore.inf
+!if $(EDK2_SKIP_PEICORE) == TRUE
+  INF ArmPlatformPkg/PeilessSec/PeilessSec.inf
 !else
-  INF ArmPlatformPkg/PrePeiCore/PrePeiCoreUniCore.inf
+  INF ArmPlatformPkg/Sec/Sec.inf
   INF MdeModulePkg/Core/Pei/PeiMain.inf
   INF ArmPlatformPkg/PlatformPei/PlatformPeim.inf
   INF ArmPlatformPkg/MemoryInitPei/MemoryInitPeim.inf
   INF ArmPkg/Drivers/CpuPei/CpuPei.inf
   INF MdeModulePkg/Universal/PCD/Pei/Pcd.inf
+!if $(ENABLE_UEFI_SECURE_VARIABLE) == TRUE
+  INF ArmPkg/Drivers/MmCommunicationPei/MmCommunicationPei.inf
+  INF MdeModulePkg/Universal/Variable/MmVariablePei/MmVariablePei.inf
+!else
+  INF MdeModulePkg/Universal/FaultTolerantWritePei/FaultTolerantWritePei.inf
   INF MdeModulePkg/Universal/Variable/Pei/VariablePei.inf
+!endif
   INF MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
+!if $(ENABLE_TPM) == TRUE
+  INF SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigFfaPei.inf
+  INF SecurityPkg/Tcg/Tcg2Pei/Tcg2Pei.inf
+!endif
 !endif
 
   FILE FV_IMAGE = 9E21FD93-9C72-4c15-8C4B-E77F1DB2D792 {
@@ -337,4 +376,3 @@ READ_LOCK_STATUS   = TRUE
     UI        STRING="$(MODULE_NAME)" Optional
     VERSION   STRING="$(INF_VERSION)" Optional BUILD_NUM=$(BUILD_NUMBER)
   }
-

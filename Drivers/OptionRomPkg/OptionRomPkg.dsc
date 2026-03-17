@@ -25,7 +25,7 @@
   PLATFORM_VERSION               = 0.1
   DSC_SPECIFICATION              = 0x00010005
   OUTPUT_DIRECTORY               = Build/OptionRomPkg
-  SUPPORTED_ARCHITECTURES        = IA32|X64|EBC|ARM|AARCH64
+  SUPPORTED_ARCHITECTURES        = IA32|X64|EBC|AARCH64
   BUILD_TARGETS                  = DEBUG|RELEASE
   SKUID_IDENTIFIER               = DEFAULT
 
@@ -57,22 +57,13 @@
   DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
   UefiApplicationEntryPoint|MdePkg/Library/UefiApplicationEntryPoint/UefiApplicationEntryPoint.inf
   UefiRuntimeLib|MdePkg/Library/UefiRuntimeLib/UefiRuntimeLib.inf
-
-[LibraryClasses.AARCH64, LibraryClasses.ARM]
-  NULL|ArmPkg/Library/CompilerIntrinsicsLib/CompilerIntrinsicsLib.inf
-
-[LibraryClasses.ARM]
-  NULL|MdePkg/Library/BaseStackCheckLib/BaseStackCheckLib.inf
+  HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
 
 ################################################################################
 #
 # Pcd Section - list of all EDK II PCD Entries defined by this Platform
 #
 ################################################################################
-[PcdsFeatureFlag]
-  gOptionRomPkgTokenSpaceGuid.PcdSupportScsiPassThru|TRUE
-  gOptionRomPkgTokenSpaceGuid.PcdSupportExtScsiPassThru|TRUE
-
 [PcdsFixedAtBuild]
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x27
   gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x80000042
@@ -109,6 +100,10 @@
   OptionRomPkg/CirrusLogic5430Dxe/CirrusLogic5430Dxe.inf
   OptionRomPkg/UndiRuntimeDxe/UndiRuntimeDxe.inf
   OptionRomPkg/Bus/Usb/FtdiUsbSerialDxe/FtdiUsbSerialDxe.inf
+  OptionRomPkg/RenesasFirmwarePD720202/RenesasFirmwarePD720202.inf {
+    <LibraryClasses>
+      DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
+  }
 
 [Components.IA32, Components.X64]
   OptionRomPkg/Application/BltLibSample/BltLibSample.inf

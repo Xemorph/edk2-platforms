@@ -12,7 +12,7 @@
   PLATFORM_VERSION               = 0.1
   DSC_SPECIFICATION              = 0x0001001C
   OUTPUT_DIRECTORY               = Build/DisplayLink
-  SUPPORTED_ARCHITECTURES        = X64|IA32|AARCH64|ARM
+  SUPPORTED_ARCHITECTURES        = X64|IA32|AARCH64
   BUILD_TARGETS                  = DEBUG|RELEASE|NOOPT
   SKUID_IDENTIFIER               = DEFAULT
 
@@ -35,14 +35,6 @@
 
 [LibraryClasses.common.UEFI_DRIVER]
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
-
-[LibraryClasses.AARCH64]
-  NULL|ArmPkg/Library/CompilerIntrinsicsLib/CompilerIntrinsicsLib.inf
-  NULL|MdePkg/Library/BaseStackCheckLib/BaseStackCheckLib.inf
-
-[LibraryClasses.ARM]
-  NULL|ArmPkg/Library/CompilerIntrinsicsLib/CompilerIntrinsicsLib.inf
-  NULL|MdePkg/Library/BaseStackCheckLib/BaseStackCheckLib.inf
 
 [PcdsFixedAtBuild]
 !ifdef $(DEBUG_ENABLE_OUTPUT)

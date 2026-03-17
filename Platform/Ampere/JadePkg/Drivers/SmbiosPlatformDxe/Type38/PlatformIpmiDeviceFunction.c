@@ -22,9 +22,10 @@
 
 **/
 SMBIOS_PLATFORM_DXE_TABLE_FUNCTION (PlatformIpmiDevice) {
-  EFI_STATUS          Status;
-  SMBIOS_TABLE_TYPE38 *InputData;
+  EFI_STATUS           Status;
+  SMBIOS_TABLE_TYPE38  *InputData;
 
+  Status    = EFI_INVALID_PARAMETER;
   InputData = (SMBIOS_TABLE_TYPE38 *)RecordData;
   while (InputData->Hdr.Type != NULL_TERMINATED_TYPE) {
     Status = SmbiosPlatformDxeAddRecord ((UINT8 *)InputData, NULL);

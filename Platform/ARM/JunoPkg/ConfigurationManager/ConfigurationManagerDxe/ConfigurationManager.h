@@ -139,7 +139,15 @@ typedef EFI_STATUS (*CM_OBJECT_HANDLER_PROC) (
 
 /** The number of ACPI tables to install
 */
+#ifdef ENABLE_TPM
+#define PLAT_ACPI_TABLE_COUNT   12
+#else
 #define PLAT_ACPI_TABLE_COUNT   11
+#endif
+
+/** The number of SMBIOS tables to install
+*/
+#define PLAT_SMBIOS_TABLE_COUNT     2
 
 /** The number of platform generic timer blocks
 */
@@ -223,11 +231,14 @@ typedef struct PlatformRepositoryInfo {
   /// List of ACPI tables
   CM_STD_OBJ_ACPI_TABLE_INFO            CmAcpiTableList[PLAT_ACPI_TABLE_COUNT];
 
+  /// List of SMBIOS tables
+  CM_STD_OBJ_SMBIOS_TABLE_INFO          SmbiosTableList[PLAT_SMBIOS_TABLE_COUNT];
+
   /// Boot architecture information
   CM_ARM_BOOT_ARCH_INFO                 BootArchInfo;
 
   /// Power management profile information
-  CM_ARM_POWER_MANAGEMENT_PROFILE_INFO  PmProfileInfo;
+  CM_ARCH_COMMON_POWER_MANAGEMENT_PROFILE_INFO  PmProfileInfo;
 
   /// GIC CPU interface information
   CM_ARM_GICC_INFO                      GicCInfo[PLAT_CPU_COUNT];
@@ -250,65 +261,73 @@ typedef struct PlatformRepositoryInfo {
   /** Serial port information for the
       serial port console redirection port
   */
-  CM_ARM_SERIAL_PORT_INFO               SpcrSerialPort;
+  CM_ARCH_COMMON_SERIAL_PORT_INFO       SpcrSerialPort;
 
   /// Serial port information for the DBG2 UART port
-  CM_ARM_SERIAL_PORT_INFO               DbgSerialPort;
+  CM_ARCH_COMMON_SERIAL_PORT_INFO       DbgSerialPort;
 
   /// PCI configuration space information
-  CM_ARM_PCI_CONFIG_SPACE_INFO          PciConfigInfo;
+  CM_ARCH_COMMON_PCI_CONFIG_SPACE_INFO  PciConfigInfo;
 
   // PCI address-range mapping references
-  CM_ARM_OBJ_REF                        PciAddressMapRef[PCI_ADDRESS_MAP_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                PciAddressMapRef[PCI_ADDRESS_MAP_COUNT];
 
   // PCI address-range mapping information
-  CM_ARM_PCI_ADDRESS_MAP_INFO           PciAddressMapInfo[PCI_ADDRESS_MAP_COUNT];
+  CM_ARCH_COMMON_PCI_ADDRESS_MAP_INFO   PciAddressMapInfo[PCI_ADDRESS_MAP_COUNT];
 
   // PCI device legacy interrupts mapping references
-  CM_ARM_OBJ_REF                        PciInterruptMapRef[PCI_INTERRUPT_MAP_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                PciInterruptMapRef[PCI_INTERRUPT_MAP_COUNT];
 
   // PCI device legacy interrupts mapping information
-  CM_ARM_PCI_INTERRUPT_MAP_INFO         PciInterruptMapInfo[PCI_INTERRUPT_MAP_COUNT];
+  CM_ARCH_COMMON_PCI_INTERRUPT_MAP_INFO PciInterruptMapInfo[PCI_INTERRUPT_MAP_COUNT];
 
   /// GIC MSI Frame information
   CM_ARM_GIC_MSI_FRAME_INFO             GicMsiFrameInfo;
 
   // Processor topology information
-  CM_ARM_PROC_HIERARCHY_INFO            ProcHierarchyInfo[PLAT_PROC_HIERARCHY_NODE_COUNT];
+  CM_ARCH_COMMON_PROC_HIERARCHY_INFO    ProcHierarchyInfo[PLAT_PROC_HIERARCHY_NODE_COUNT];
 
   // Cache information
-  CM_ARM_CACHE_INFO                     CacheInfo[PLAT_CACHE_COUNT];
+  CM_ARCH_COMMON_CACHE_INFO             CacheInfo[PLAT_CACHE_COUNT];
 
   // 'big' cluster private resources
-  CM_ARM_OBJ_REF                        BigClusterResources[BIG_CLUSTER_RESOURCE_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                BigClusterResources[BIG_CLUSTER_RESOURCE_COUNT];
 
   // 'big' core private resources
-  CM_ARM_OBJ_REF                        BigCoreResources[BIG_CORE_RESOURCE_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                BigCoreResources[BIG_CORE_RESOURCE_COUNT];
 
   // 'LITTLE' cluster private resources
-  CM_ARM_OBJ_REF                        LittleClusterResources[LITTLE_CLUSTER_RESOURCE_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                LittleClusterResources[LITTLE_CLUSTER_RESOURCE_COUNT];
 
   // 'LITTLE' core private resources
-  CM_ARM_OBJ_REF                        LittleCoreResources[LITTLE_CORE_RESOURCE_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                LittleCoreResources[LITTLE_CORE_RESOURCE_COUNT];
 
   // Low Power Idle state information (LPI) for all cores/clusters
-  CM_ARM_LPI_INFO                       LpiInfo[LPI_STATE_COUNT];
+  CM_ARCH_COMMON_LPI_INFO               LpiInfo[LPI_STATE_COUNT];
 
   // Clusters Low Power Idle state references (LPI)
-  CM_ARM_OBJ_REF                        ClustersLpiRef[CLUSTERS_LPI_STATE_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                ClustersLpiRef[CLUSTERS_LPI_STATE_COUNT];
 
   // Cores Low Power Idle state references (LPI)
-  CM_ARM_OBJ_REF                        CoresLpiRef[CORES_LPI_STATE_COUNT];
+  CM_ARCH_COMMON_OBJ_REF                CoresLpiRef[CORES_LPI_STATE_COUNT];
 
   // Power domains
-  CM_ARM_PSD_INFO                       PsdInfo[PSD_DOMAIN_COUNT];
+  CM_ARCH_COMMON_PSD_INFO               PsdInfo[PSD_DOMAIN_COUNT];
 
   //
   // Dynamically populated fields from here.
   //
 
   // Cpc info (1 for each PSD domain)
-  CM_ARM_CPC_INFO                       CpcInfo[PSD_DOMAIN_COUNT];
+  CM_ARCH_COMMON_CPC_INFO               CpcInfo[PSD_DOMAIN_COUNT];
+
+#ifdef ENABLE_TPM
+  /// TPM2 Interface Information
+  CM_ARCH_COMMON_TPM2_INTERFACE_INFO    TpmInfo;
+
+  /// TPM2 Device Information
+  CM_ARCH_COMMON_TPM2_DEVICE_INFO       TpmDevInfo;
+#endif
 
   /// Juno Board Revision
   UINT32                                JunoRevision;

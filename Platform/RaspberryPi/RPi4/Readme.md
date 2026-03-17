@@ -16,6 +16,7 @@ Raspberry Pi is a trademark of the [Raspberry Pi Foundation](https://www.raspber
 
 The RPi4 target supports Pi revisions based on the BCM2711 SoC:
 - Raspberry Pi 4B
+- Raspberry Pi 400
 
 Please see the RPi3 target for the BCM2837-based variants, such as the Raspberry
 Pi 3B.
@@ -44,7 +45,7 @@ Build instructions from the top level edk2-platforms Readme.md apply.
 1. Format a uSD card as FAT16 or FAT32
 2. Copy the generated `RPI_EFI.fd` firmware onto the partition
 3. Download and copy the following files from https://github.com/raspberrypi/firmware/tree/master/boot
-  - `bcm2711-rpi-4-b.dtb`
+  - `bcm2711-rpi-4-b.dtb` or `bcm2711-rpi-400.dtb`
   - `fixup4.dat`
   - `start4.elf`
   - `overlays/miniuart-bt.dbto` or `overlays/disable-bt.dtbo` (Optional)
@@ -55,8 +56,8 @@ Build instructions from the top level edk2-platforms Readme.md apply.
     enable_gic=1
     armstub=RPI_EFI.fd
     disable_commandline_tags=2
-    device_tree_address=0x1f0000
-    device_tree_end=0x200000
+    device_tree_address=0x3e0000
+    device_tree_end=0x400000
     ```
     Additionally, if you want to use PL011 instead of the miniUART, you can add the lines:
     ```
@@ -84,6 +85,7 @@ By default, UEFI will use the device tree loaded by the VideoCore firmware. This
 depends on the model/variant, and relies on the presence on specific files on your boot media.
 E.g.:
  - `bcm2711-rpi-4-b.dtb` (for Pi 4B)
+ - `bcm2711-rpi-400.dtb` (for Pi 400)
 
 You can override the DTB and provide a custom one. Copy the relevant `.dtb` into the root of
 the SD or USB, and then edit your `config.txt` so that it looks like:
@@ -91,12 +93,12 @@ the SD or USB, and then edit your `config.txt` so that it looks like:
 ```
 (...)
 disable_commandline_tags=2
-device_tree_address=0x1f0000
-device_tree_end=0x200000
+device_tree_address=0x3e0000
+device_tree_end=0x400000
 device_tree=your_fdt_file.dtb
 ```
 
-Note: the address range **must** be `[0x1f0000:0x200000]`. `dtoverlay` and `dtparam` parameters are also supported.
+Note: the address range **must** be `[0x3e0000:0x400000]`. `dtoverlay` and `dtparam` parameters are also supported.
 
 ## Custom `bootargs`
 

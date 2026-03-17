@@ -14,7 +14,7 @@
 ################################################################################
 [PcdsFixedAtBuild.common]
   ######################################
-  # Key Boot Stage and FSP configuration
+  # Key Boot Stage
   ######################################
   #
   # Please select the Boot Stage here.
@@ -25,25 +25,6 @@
   # Stage 5 - boot to OS with security boot enabled
   #
   gMinPlatformPkgTokenSpaceGuid.PcdBootStage|4
-
-[PcdsFeatureFlag.common]
-  ######################################
-  # Edk2 Configuration
-  ######################################
-  gEfiMdeModulePkgTokenSpaceGuid.PcdBrowerGrayOutReadOnlyMenu|TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSupportUefiDecompress|FALSE
-!if $(PEI_ARCH) == "IA32" && $(DXE_ARCH) == "X64"
-  gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode|TRUE
-!else
-  gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode|FALSE
-!endif
-  gEfiMdeModulePkgTokenSpaceGuid.PcdInstallAcpiSdtProtocol|TRUE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdPciBusHotplugDeviceSupport|FALSE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSupportUpdateCapsuleReset|FALSE
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuHotPlugSupport|FALSE
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmEnableBspElection|FALSE
-  gUefiCpuPkgTokenSpaceGuid.PcdSmmFeatureControlEnable|FALSE
-  gUefiCpuPkgTokenSpaceGuid.PcdSmrrEnable|FALSE
 
   ######################################
   # Platform Configuration
@@ -60,6 +41,37 @@
   # Commonly used MinPlatform feature configuration logic that maps functionity to stage
   #
   !include BoardModulePkg/Include/Dsc/CommonStageConfig.dsc.inc
+
+[PcdsFixedAtBuild.common]
+  ######################################
+  # FSP configuration
+  ######################################
+
+  gIntelSiliconPkgTokenSpaceGuid.PcdAcpiBaseAddress|0x400
+
+[PcdsFeatureFlag.common]
+  ######################################
+  # Edk2 Configuration
+  ######################################
+  #
+  # For X64, PcdCpuSmmRestrictedMemoryAccess must be FALSE if PcdCpuSmmProfileEnable is TRUE.
+  #
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmProfileEnable|FALSE
+  gEfiMdeModulePkgTokenSpaceGuid.PcdBrowerGrayOutReadOnlyMenu|TRUE
+  gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSupportUefiDecompress|FALSE
+!if $(PEI_ARCH) == "IA32" && $(DXE_ARCH) == "X64"
+  gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode|TRUE
+!else
+  gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode|FALSE
+!endif
+  gEfiMdeModulePkgTokenSpaceGuid.PcdInstallAcpiSdtProtocol|TRUE
+  gEfiMdeModulePkgTokenSpaceGuid.PcdPciBusHotplugDeviceSupport|FALSE
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSupportUpdateCapsuleReset|FALSE
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuHotPlugSupport|FALSE
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmEnableBspElection|FALSE
+  gUefiCpuPkgTokenSpaceGuid.PcdSmmFeatureControlEnable|FALSE
+  gUefiCpuPkgTokenSpaceGuid.PcdSmrrEnable|TRUE
+  gMinPlatformPkgTokenSpaceGuid.PcdStandaloneMmEnable|TRUE
 
   ######################################
   # Silicon Configuration
@@ -198,6 +210,9 @@
   gPcAtChipsetPkgTokenSpaceGuid.PcdMinimalValidYear|2015
   gPcAtChipsetPkgTokenSpaceGuid.PcdMaximalValidYear|2099
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmCodeAccessCheckEnable |TRUE
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64|0
+  gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvStoreReserved|0
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmRestrictedMemoryAccess|TRUE
 
  [PcdsPatchableInModule.common]
   ######################################
@@ -217,8 +232,6 @@
   # Edk2 Configuration
   ######################################
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiS3Enable|FALSE
-  gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvStoreReserved|0
-  gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1024
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|600
 

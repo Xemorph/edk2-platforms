@@ -9,7 +9,9 @@
 #include "FdtPlatform.h"
 
 #include <Library/PcdLib.h>
+#include <Library/BaseMemoryLib.h>
 #include <Library/DevicePathLib.h>
+#include <Library/FdtLib.h>
 #include <Library/BdsLib.h>
 
 #include <Protocol/DevicePath.h>
@@ -68,7 +70,7 @@ InstallFdt (
                   (VOID **)&EfiDevicePathFromTextProtocol
                   );
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "InstallFdt() - Failed to locate EFI_DEVICE_PATH_FROM_TEXT_PROTOCOL protocol\n"));
+    DEBUG ((DEBUG_ERROR, "InstallFdt() - Failed to locate EFI_DEVICE_PATH_FROM_TEXT_PROTOCOL protocol\n"));
     return Status;
   }
 
@@ -92,9 +94,9 @@ InstallFdt (
   // Ensure that the FDT header is valid and that the Size of the Device Tree
   // is smaller than the size of the read file
   //
-  if (fdt_check_header ((VOID*)(UINTN)FdtBlobBase) != 0 ||
-      (UINTN)fdt_totalsize ((VOID*)(UINTN)FdtBlobBase) > FdtBlobSize) {
-    DEBUG ((EFI_D_ERROR, "InstallFdt() - loaded FDT binary image seems corrupt\n"));
+  if (FdtCheckHeader ((VOID*)(UINTN)FdtBlobBase) != 0 ||
+      (UINTN)FdtTotalSize ((VOID*)(UINTN)FdtBlobBase) > FdtBlobSize) {
+    DEBUG ((DEBUG_ERROR, "InstallFdt() - loaded FDT binary image seems corrupt\n"));
     Status = EFI_LOAD_ERROR;
     goto Error;
   }
@@ -210,7 +212,7 @@ FdtPlatformEntryPoint (
     }
     if (EFI_ERROR (Status)) {
       DEBUG ((
-        EFI_D_WARN,
+        DEBUG_WARN,
         "Unable to install \"setfdt\" EFI Shell command - %r \n",
         Status
         ));
@@ -236,7 +238,7 @@ FdtPlatformEntryPoint (
     }
     if (EFI_ERROR (Status)) {
       DEBUG ((
-        EFI_D_WARN,
+        DEBUG_WARN,
         "Unable to install \"dumpfdt\" EFI Shell command - %r \n",
         Status
         ));
@@ -322,14 +324,14 @@ RunFdtInstallation (
       Status = InstallFdt (TextDevicePath);
       if (!EFI_ERROR (Status)) {
         DEBUG ((
-          EFI_D_WARN,
+          DEBUG_WARN,
           "Installation of the FDT using the device path <%s> completed.\n",
           TextDevicePath
           ));
         goto Done;
       }
       DEBUG ((
-        EFI_D_ERROR,
+        DEBUG_ERROR,
         "Installation of the FDT specified by the \"Fdt\" UEFI variable failed - %r\n",
         Status
         ));
@@ -368,13 +370,13 @@ RunFdtInstallation (
 
     Status = InstallFdt (TextDevicePath);
     if (!EFI_ERROR (Status)) {
-      DEBUG ((EFI_D_WARN, "Installation of the FDT using the device path <%s> completed.\n",
+      DEBUG ((DEBUG_WARN, "Installation of the FDT using the device path <%s> completed.\n",
         TextDevicePath
         ));
       goto Done;
     }
 
-    DEBUG ((EFI_D_WARN, "Installation of the FDT using the device path <%s> failed - %r.\n",
+    DEBUG ((DEBUG_WARN, "Installation of the FDT using the device path <%s> failed - %r.\n",
       TextDevicePath, Status
       ));
     FreePool (TextDevicePath);
@@ -389,7 +391,7 @@ Error:
 Done:
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "Failed to install the FDT - %r.\n", Status));
+    DEBUG ((DEBUG_ERROR, "Failed to install the FDT - %r.\n", Status));
     return Status;
   }
 

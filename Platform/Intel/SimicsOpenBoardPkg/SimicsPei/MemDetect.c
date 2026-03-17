@@ -1,7 +1,7 @@
 /** @file
   Memory Detection for Virtual Machines.
 
-  Copyright (c) 2006 - 2023 Intel Corporation. All rights reserved. <BR>
+  Copyright (c) 2006 - 2025 Intel Corporation. All rights reserved. <BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
@@ -25,7 +25,6 @@
 #include <Library/CmosAccessLib.h>
 #include <SimicsPlatforms.h>
 #include <Guid/SmramMemoryReserve.h>
-#include <Library/SmmAccessLib.h>
 
 #include <CmosMap.h>
 
@@ -154,7 +153,7 @@ GetFirstNonAddress (
 
   if (Pci64Size == 0) {
     if (mBootMode != BOOT_ON_S3_RESUME) {
-      DEBUG ((EFI_D_INFO, "%a: disabling 64-bit PCI host aperture\n",
+      DEBUG ((DEBUG_INFO, "%a: disabling 64-bit PCI host aperture\n",
         __func__));
       PcdSet64S (PcdPciMmio64Size, 0);
     }
@@ -190,7 +189,7 @@ GetFirstNonAddress (
     //
     PcdSet64S (PcdPciMmio64Base, Pci64Base);
     PcdSet64S (PcdPciMmio64Size, Pci64Size);
-    DEBUG ((EFI_D_INFO, "%a: Pci64Base=0x%Lx Pci64Size=0x%Lx\n",
+    DEBUG ((DEBUG_INFO, "%a: Pci64Base=0x%Lx Pci64Size=0x%Lx\n",
       __func__, Pci64Base, Pci64Size));
   }
 
@@ -350,7 +349,7 @@ PublishPeiMemory (
     MemorySize = mS3AcpiReservedMemorySize;
   } else {
     PeiMemoryCap = GetPeiMemoryCap ();
-    DEBUG ((EFI_D_INFO, "%a: mPhysMemAddressWidth=%d PeiMemoryCap=%u KB\n",
+    DEBUG ((DEBUG_INFO, "%a: mPhysMemAddressWidth=%d PeiMemoryCap=%u KB\n",
       __func__, mPhysMemAddressWidth, PeiMemoryCap >> 10));
 
     //
@@ -368,7 +367,7 @@ PublishPeiMemory (
       PcdGet32 (PcdSimicsDxeMemFvBase) + PcdGet32 (PcdSimicsDxeMemFvSize);
     MemorySize = LowerMemorySize - MemoryBase;
   }
-  DEBUG((EFI_D_INFO, "MemoryBase=0x%lx MemorySize=0x%lx\n", MemoryBase, MemorySize));
+  DEBUG((DEBUG_INFO, "MemoryBase=0x%lx MemorySize=0x%lx\n", MemoryBase, MemorySize));
   //
   // Publish this memory to the PEI Core
   //
@@ -397,7 +396,7 @@ QemuInitializeRam (
   EFI_SMRAM_HOB_DESCRIPTOR_BLOCK        *SmramHobDescriptorBlock;
   VOID                                  *GuidHob;
 
-  DEBUG ((EFI_D_INFO, "%a called\n", __func__));
+  DEBUG ((DEBUG_INFO, "%a called\n", __func__));
 
   //
   // Determine total memory size available
@@ -483,8 +482,6 @@ InitializeRamRegions (
   VOID
   )
 {
-  EFI_STATUS     Status;
-
   QemuInitializeRam ();
 
   if (mS3Supported && mBootMode != BOOT_ON_S3_RESUME) {
@@ -557,10 +554,4 @@ InitializeRamRegions (
         );
     }
   }
-
-  //
-  // Install EFI_PEI_MM_ACCESS_PPI for S3 resume case
-  //
-  Status = PeiInstallSmmAccessPpi ();
-  ASSERT_EFI_ERROR (Status);
 }

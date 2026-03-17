@@ -15,7 +15,7 @@
   PLATFORM_GUID                  = 6B4BF998-668B-46D3-BCFA-971F99F8708C
   PLATFORM_VERSION               = 0.1
   DSC_SPECIFICATION              = 0x00010005
-  SUPPORTED_ARCHITECTURES        = IA32|X64|EBC|ARM|AARCH64|RISCV64
+  SUPPORTED_ARCHITECTURES        = IA32|X64|EBC|AARCH64|RISCV64|LOONGARCH64
   OUTPUT_DIRECTORY               = Build/Ext4Pkg
   BUILD_TARGETS                  = DEBUG|RELEASE|NOOPT
   SKUID_IDENTIFIER               = DEFAULT
@@ -46,11 +46,6 @@
   DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
   OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf
   BaseUcs2Utf8Lib|RedfishPkg/Library/BaseUcs2Utf8Lib/BaseUcs2Utf8Lib.inf
-
-  #
-  # Required for stack protector support
-  #
-  NULL|MdePkg/Library/BaseStackCheckLib/BaseStackCheckLib.inf
 
 ###################################################################################################
 #
